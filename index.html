@@ -1,0 +1,1892 @@
+﻿<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ذهن‌نگار — نقشه ذهنی</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300..800&family=Noto+Naskh+Arabic:wght@400..700&family=Noto+Sans+Arabic:wght@300..800&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Markazi+Text:wght@400..700&family=Lalezar&family=Amiri:wght@400;700&family=Reem+Kufi:wght@400..700&family=Readex+Pro:wght@300..700&family=Tajawal:wght@300;400;500;700&family=Cairo:wght@300..800&family=El+Messiri:wght@400..700&family=Changa:wght@300..700&family=Harmattan:wght@400;700&family=Mada:wght@300..800&family=Noto+Nastaliq+Urdu:wght@400..700&family=Inter:wght@300..800&family=Poppins:wght@300;400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#f4f6fb; --bg2:#ffffff; --panel:rgba(255,255,255,.78); --panel-solid:#ffffff;
+  --border:rgba(15,23,42,.08); --border-strong:rgba(15,23,42,.16);
+  --text:#0f172a; --muted:#64748b; --accent:#6366f1; --accent-2:#a855f7; --accent-soft:rgba(99,102,241,.12);
+  --hover:rgba(15,23,42,.05); --shadow:0 18px 40px -18px rgba(15,23,42,.35); --shadow-sm:0 2px 10px -3px rgba(15,23,42,.14);
+  --grid:rgba(15,23,42,.10); --danger:#ef4444; --ok:#10b981; --drop:#22c55e;
+  --ui-font:'Vazirmatn',Tahoma,system-ui,sans-serif;
+}
+[data-theme=dark]{
+  --bg:#0a0e18; --bg2:#121826; --panel:rgba(18,24,38,.78); --panel-solid:#141b2b;
+  --border:rgba(148,163,184,.12); --border-strong:rgba(148,163,184,.24);
+  --text:#e6e9f2; --muted:#94a3b8; --accent:#818cf8; --accent-2:#c084fc; --accent-soft:rgba(129,140,248,.16);
+  --hover:rgba(148,163,184,.08); --shadow:0 20px 50px -18px rgba(0,0,0,.75); --shadow-sm:0 2px 12px -3px rgba(0,0,0,.5);
+  --grid:rgba(148,163,184,.10);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--ui-font);font-size:14px;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0}
+svg.i{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* ---------- viewport ---------- */
+#viewport{position:fixed;inset:0;overflow:hidden;background-color:var(--bg);background-image:radial-gradient(var(--grid) 1.3px,transparent 1.4px);touch-action:none;cursor:default}
+#viewport.panning{cursor:grabbing}
+#world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+#edges{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible;pointer-events:none}
+#edges path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+#nodes{position:absolute;left:0;top:0}
+#dropLine{position:absolute;left:0;top:0;display:none;background:var(--drop);border-radius:4px;box-shadow:0 0 0 4px rgba(34,197,94,.22);pointer-events:none;z-index:5}
+
+/* ---------- nodes ---------- */
+.node{position:absolute;left:0;top:0;width:max-content;min-width:var(--node-min,140px);max-width:var(--node-max,320px);
+  padding:10px 18px;border-radius:14px;background:var(--nbg);color:var(--nfg);border:2px solid var(--nbd);
+  font-family:var(--map-font);font-size:var(--fs,15px);line-height:1.75;cursor:grab;user-select:none;-webkit-user-select:none;
+  box-shadow:0 1px 2px rgba(0,0,0,.05),0 8px 20px -10px var(--nsh);transition:box-shadow .18s ease,opacity .18s ease}
+.node:hover{box-shadow:0 1px 2px rgba(0,0,0,.05),0 14px 28px -12px var(--nsh)}
+.node .txt{white-space:pre-wrap;overflow-wrap:break-word;word-break:normal;text-align:start;outline:none;min-height:1.75em;unicode-bidi:plaintext}
+.node .txt:empty::before{content:'…';opacity:.5}
+.btn:disabled{opacity:.4;pointer-events:none}
+.node.al-right .txt{text-align:right}.node.al-left .txt{text-align:left}.node.al-center .txt{text-align:center}
+.node.root{font-size:calc(var(--fs,15px)*1.38);font-weight:700;padding:14px 26px;border-radius:18px}
+.node.d1{font-size:calc(var(--fs,15px)*1.1);font-weight:600}
+.node.dn{font-weight:500}
+[data-shape=pill] .node{border-radius:28px}
+[data-shape=pill] .node.root{border-radius:34px}
+[data-shape=square] .node{border-radius:5px}
+[data-shape=underline] .node:not(.root){background:transparent;border-color:transparent;border-bottom:3px solid var(--nacc);border-radius:2px;color:var(--text);box-shadow:none;padding:6px 8px}
+.node.selected{box-shadow:0 0 0 3px var(--bg),0 0 0 5.5px var(--accent),0 14px 30px -12px var(--nsh)}
+.node.editing{cursor:text;user-select:text;-webkit-user-select:text}
+.node.editing .txt{cursor:text}
+.node.dragging{opacity:.92;cursor:grabbing;box-shadow:0 26px 50px -16px rgba(0,0,0,.45);z-index:10}
+.node.drag-sub{opacity:.75}
+.node.drop-child{box-shadow:0 0 0 3px var(--bg),0 0 0 6px var(--drop),0 14px 30px -12px var(--nsh)}
+.node.flash{animation:flash .7s ease}
+@keyframes flash{0%{transform:var(--tf) scale(1)}40%{filter:brightness(1.15)}100%{filter:none}}
+.toggle{position:absolute;min-width:20px;height:20px;padding:0 4px;border-radius:10px;background:var(--bg2);border:2px solid var(--nacc);color:var(--nacc);
+  font:700 11px/16px 'Vazirmatn',Tahoma,sans-serif;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s,transform .15s;z-index:2}
+.node:hover .toggle,.node.selected .toggle,.toggle.closed{opacity:1}
+.toggle:hover{transform:var(--tt) scale(1.15)}
+.toggle.closed{background:var(--nacc);color:#fff}
+.t-right{right:-13px;top:50%;--tt:translateY(-50%);transform:var(--tt)}
+.t-left{left:-13px;top:50%;--tt:translateY(-50%);transform:var(--tt)}
+.t-bottom{left:50%;bottom:-13px;--tt:translateX(-50%);transform:var(--tt)}
+.t-bl{left:8px;bottom:-13px;--tt:none}
+.t-br{right:8px;bottom:-13px;--tt:none}
+
+/* ---------- floating chrome ---------- */
+.glass{background:var(--panel);backdrop-filter:blur(18px) saturate(1.5);-webkit-backdrop-filter:blur(18px) saturate(1.5);border:1px solid var(--border);box-shadow:var(--shadow)}
+.topbar{position:fixed;top:12px;left:12px;right:12px;height:56px;border-radius:18px;display:flex;align-items:center;gap:10px;padding:0 10px;z-index:30}
+.tb-group{display:flex;align-items:center;gap:2px}
+.tb-scroll{flex:1;justify-content:center;overflow-x:auto;scrollbar-width:none}
+.tb-scroll::-webkit-scrollbar{display:none}
+.tb-sep{width:1px;height:24px;background:var(--border-strong);margin:0 6px;flex:none}
+.icon-btn{width:38px;height:38px;border-radius:11px;display:inline-flex;align-items:center;justify-content:center;color:var(--text);transition:background .15s,color .15s,transform .1s;flex:none;position:relative}
+.icon-btn:hover{background:var(--hover)}
+.icon-btn:active{transform:scale(.94)}
+.icon-btn.active{background:var(--accent-soft);color:var(--accent)}
+.icon-btn:disabled{opacity:.35;pointer-events:none}
+.icon-btn[data-tip]:hover::after{content:attr(data-tip);position:absolute;top:calc(100% + 10px);left:50%;transform:translateX(-50%);white-space:nowrap;background:var(--text);color:var(--bg);font-size:12px;padding:5px 9px;border-radius:8px;pointer-events:none;z-index:99}
+.brand{gap:8px;min-width:0}
+.logo{width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:grid;place-items:center;color:#fff;flex:none;box-shadow:0 6px 16px -6px var(--accent)}
+.logo svg{width:20px;height:20px}
+.proj-name{border:1px solid transparent;background:transparent;border-radius:10px;padding:7px 10px;font-weight:700;font-size:15px;width:200px;min-width:80px;text-overflow:ellipsis}
+.proj-name:hover{background:var(--hover)}
+.proj-name:focus{outline:none;border-color:var(--accent);background:var(--bg2)}
+.save-state{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);white-space:nowrap;padding:4px 10px;border-radius:99px;background:var(--hover)}
+.save-state i{width:7px;height:7px;border-radius:50%;background:var(--ok);display:block}
+.save-state.pending i{background:#f59e0b}
+.btn{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 14px;border-radius:11px;font-weight:600;transition:background .15s,transform .1s,box-shadow .15s;white-space:nowrap}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;box-shadow:0 8px 20px -10px var(--accent)}
+.btn-primary:hover{box-shadow:0 10px 24px -8px var(--accent)}
+.btn-ghost{background:var(--hover)}
+.btn-ghost:hover{background:var(--border-strong)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-sm{height:32px;padding:0 10px;font-size:13px;border-radius:9px}
+
+.zoombar{position:fixed;bottom:14px;left:14px;display:flex;align-items:center;gap:2px;padding:4px;border-radius:14px;z-index:30;direction:ltr}
+.zoombar .icon-btn{width:34px;height:34px}
+.zoombar .icon-btn[data-tip]:hover::after{top:auto;bottom:calc(100% + 10px)}
+#zoomLabel{min-width:52px;text-align:center;font-size:12px;font-weight:600;color:var(--muted);border-radius:8px;height:34px}
+#zoomLabel:hover{background:var(--hover)}
+.hint{position:fixed;bottom:18px;right:18px;font-size:12px;color:var(--muted);z-index:20;padding:7px 12px;border-radius:12px}
+
+/* ---------- drawers ---------- */
+.drawer{position:fixed;top:80px;bottom:12px;width:340px;max-width:calc(100vw - 24px);border-radius:18px;z-index:28;display:flex;flex-direction:column;transition:transform .32s cubic-bezier(.2,.8,.2,1),opacity .25s;overflow:hidden}
+.drawer-right{right:12px;transform:translateX(calc(100% + 24px));opacity:0}
+.drawer-left{left:12px;bottom:66px;transform:translateX(calc(-100% - 24px));opacity:0}
+.drawer.open{transform:none;opacity:1}
+.dr-head{display:flex;align-items:center;gap:8px;padding:14px 14px 10px;border-bottom:1px solid var(--border)}
+.dr-head h3{margin:0;font-size:15px;flex:1}
+.dr-body{flex:1;overflow-y:auto;padding:14px;scrollbar-width:thin}
+.tabs{display:flex;gap:4px;padding:4px;background:var(--hover);border-radius:12px;flex:1}
+.tabs button{flex:1;height:32px;border-radius:9px;font-weight:600;color:var(--muted);transition:all .15s}
+.tabs button.active{background:var(--panel-solid);color:var(--text);box-shadow:var(--shadow-sm)}
+
+.proj-item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:13px;cursor:pointer;border:1px solid transparent;transition:background .15s,border-color .15s;margin-bottom:6px}
+.proj-item:hover{background:var(--hover)}
+.proj-item.active{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
+.proj-dot{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;color:#fff;font-weight:700;flex:none;font-size:16px}
+.proj-meta{flex:1;min-width:0}
+.proj-meta b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}
+.proj-meta small{color:var(--muted);font-size:11.5px}
+.proj-actions{display:flex;gap:0;opacity:0;transition:opacity .15s}
+.proj-item:hover .proj-actions,.proj-item.active .proj-actions{opacity:1}
+.proj-actions .icon-btn{width:30px;height:30px}
+.proj-actions svg.i{width:15px;height:15px}
+
+.sec{margin-bottom:18px}
+.sec-title{font-size:11.5px;font-weight:700;color:var(--muted);letter-spacing:.3px;margin:0 0 10px;display:flex;align-items:center;gap:6px}
+.field{margin-bottom:14px}
+.field>label{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:7px;font-weight:500}
+.field>label output{font-size:12px;color:var(--muted);direction:ltr;background:var(--hover);padding:1px 8px;border-radius:6px}
+.select,.input{width:100%;height:38px;border-radius:10px;border:1px solid var(--border-strong);background:var(--bg2);padding:0 10px;outline:none;transition:border-color .15s,box-shadow .15s}
+.select:focus,.input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+textarea.input{height:84px;padding:8px 10px;resize:vertical;line-height:1.7;unicode-bidi:plaintext}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.seg{display:flex;gap:3px;padding:3px;background:var(--hover);border-radius:11px}
+.seg button{flex:1;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:5px;font-size:12.5px;color:var(--muted);transition:all .15s}
+.seg button.active{background:var(--panel-solid);color:var(--text);box-shadow:var(--shadow-sm)}
+.layout-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.layout-card{border:1.5px solid var(--border-strong);border-radius:12px;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11.5px;color:var(--muted);transition:all .15s;background:var(--bg2)}
+.layout-card svg{width:64px;height:40px}
+.layout-card:hover{border-color:var(--accent)}
+.layout-card.active{border-color:var(--accent);background:var(--accent-soft);color:var(--text)}
+.swatches{display:flex;flex-wrap:wrap;gap:7px}
+.sw{width:28px;height:28px;border-radius:9px;border:2px solid rgba(0,0,0,.06);cursor:pointer;transition:transform .12s;position:relative}
+.sw:hover{transform:scale(1.12)}
+.sw.active{outline:2.5px solid var(--accent);outline-offset:2px}
+.sw.none{background:repeating-linear-gradient(45deg,var(--bg2) 0 5px,var(--hover) 5px 10px);display:grid;place-items:center;color:var(--muted)}
+.sw.pick{overflow:hidden;background:conic-gradient(red,#ff0,lime,cyan,blue,#f0f,red)}
+.sw.pick input{position:absolute;inset:-8px;opacity:0;cursor:pointer;width:calc(100% + 16px);height:calc(100% + 16px)}
+.shade-row{display:flex;height:30px;border-radius:10px;overflow:hidden;margin-top:8px;border:1px solid var(--border)}
+.shade-row span{flex:1}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row>.btn{flex:1;justify-content:center}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;margin-bottom:12px;cursor:pointer}
+.switch input{appearance:none;width:38px;height:22px;border-radius:99px;background:var(--border-strong);position:relative;cursor:pointer;transition:background .2s;flex:none;margin:0}
+.switch input::after{content:"";position:absolute;top:3px;right:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.switch input:checked{background:var(--accent)}
+.switch input:checked::after{transform:translateX(-16px)}
+.empty{color:var(--muted);text-align:center;padding:30px 10px;line-height:2}
+.node-preview{padding:12px;border-radius:12px;background:var(--hover);margin-bottom:14px;font-size:13px;color:var(--muted);line-height:1.8}
+
+/* ---------- menus / modal / toast ---------- */
+.menu{position:fixed;min-width:230px;background:var(--panel-solid);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:6px;z-index:60;display:none;animation:pop .14s ease}
+.menu.open{display:block}
+@keyframes pop{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+.menu button{display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border-radius:9px;text-align:start;transition:background .12s}
+.menu button:hover{background:var(--hover)}
+.menu button.danger{color:var(--danger)}
+.menu button svg.i{width:16px;height:16px;color:var(--muted)}
+.menu button.danger svg.i{color:var(--danger)}
+.menu .kbd{margin-inline-start:auto;color:var(--muted);font-size:11px;direction:ltr;font-family:ui-monospace,Consolas,monospace}
+.menu .sep{height:1px;background:var(--border);margin:5px 4px}
+.menu .mlabel{font-size:11px;color:var(--muted);padding:6px 10px 2px;font-weight:700}
+.modal-back{position:fixed;inset:0;background:rgba(2,6,23,.45);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
+.modal-back.open{display:flex}
+.modal-card{width:420px;max-width:100%;background:var(--panel-solid);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow);padding:22px;animation:pop .18s ease}
+.modal-card h3{margin:0 0 8px;font-size:17px}
+.modal-card p{margin:0 0 16px;color:var(--muted);line-height:1.9}
+.modal-card .row{justify-content:flex-end;margin-top:18px}
+.modal-card .row .btn{flex:none}
+.kb-table{width:100%;border-collapse:collapse;font-size:13px}
+.kb-table td{padding:7px 4px;border-bottom:1px solid var(--border)}
+.kb-table td:last-child{text-align:left;direction:ltr}
+kbd{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;background:var(--hover);border:1px solid var(--border-strong);border-bottom-width:2px;border-radius:6px;padding:1px 6px}
+#toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,20px);background:var(--text);color:var(--bg);padding:10px 18px;border-radius:12px;font-size:13px;opacity:0;pointer-events:none;transition:all .25s;z-index:120;box-shadow:var(--shadow)}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:760px){
+  .proj-name{width:110px}
+  .save-state span,.hint{display:none}
+  .topbar{left:6px;right:6px;top:6px;padding:0 6px;gap:4px}
+  .drawer{top:70px}
+}
+</style>
+</head>
+<body>
+<main id="viewport">
+  <div id="world">
+    <svg id="edges" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div id="nodes"></div>
+    <div id="dropLine"></div>
+  </div>
+</main>
+
+<header class="topbar glass">
+  <div class="tb-group brand">
+    <button class="icon-btn" id="btnProjects" data-icon="folders" data-tip="پروژه‌ها"></button>
+    <div class="logo" data-icon="brain"></div>
+    <input id="projName" class="proj-name" spellcheck="false" dir="auto" title="نام پروژه">
+    <span id="saveState" class="save-state"><i></i><span>ذخیره شد</span></span>
+  </div>
+  <div class="tb-group tb-scroll">
+    <button class="icon-btn" data-act="undo" data-icon="undo" data-tip="واگرد (Ctrl+Z)"></button>
+    <button class="icon-btn" data-act="redo" data-icon="redo" data-tip="ازنو (Ctrl+Y)"></button>
+    <span class="tb-sep"></span>
+    <button class="icon-btn" data-act="addChild" data-icon="child" data-tip="زیرنود (Tab)"></button>
+    <button class="icon-btn" data-act="addSibling" data-icon="sibling" data-tip="نود هم‌سطح (Enter)"></button>
+    <button class="icon-btn" data-act="delete" data-icon="trash" data-tip="حذف (Delete)"></button>
+    <span class="tb-sep"></span>
+    <button class="icon-btn" data-act="collapseAll" data-icon="collapse" data-tip="جمع کردن همه زیرنودها"></button>
+    <button class="icon-btn" data-act="expandLevel" data-icon="expandOne" data-tip="باز کردن یک مرحله"></button>
+    <button class="icon-btn" data-act="expandAll" data-icon="expand" data-tip="باز کردن همه"></button>
+    <span class="tb-sep"></span>
+    <button class="icon-btn" data-act="arrange" data-icon="wand" data-tip="مرتب‌سازی و فرمت (Ctrl+L)"></button>
+    <button class="icon-btn" data-act="fit" data-icon="fit" data-tip="نمایش کامل (F)"></button>
+  </div>
+  <div class="tb-group">
+    <button class="icon-btn" id="btnExport" data-icon="download" data-tip="خروجی"></button>
+    <button class="icon-btn" data-act="import" data-icon="upload" data-tip="ورود فایل"></button>
+    <button class="icon-btn" data-act="save" data-icon="save" data-tip="ذخیره (Ctrl+S)"></button>
+    <button class="icon-btn" data-act="theme" id="btnTheme" data-icon="moon" data-tip="حالت روز / شب"></button>
+    <button class="icon-btn" id="btnPanel" data-icon="sliders" data-tip="تنظیمات و استایل"></button>
+  </div>
+</header>
+
+<aside id="projectsPanel" class="drawer drawer-right glass">
+  <div class="dr-head">
+    <h3>پروژه‌ها</h3>
+    <button class="btn btn-primary btn-sm" data-act="newProject"><span data-icon="plus"></span>پروژه جدید</button>
+    <button class="icon-btn" data-close="projectsPanel" data-icon="x"></button>
+  </div>
+  <div class="dr-body" id="projList"></div>
+</aside>
+
+<aside id="sidePanel" class="drawer drawer-left glass">
+  <div class="dr-head">
+    <div class="tabs">
+      <button data-tab="node" class="active">نود انتخاب‌شده</button>
+      <button data-tab="settings">تنظیمات نقشه</button>
+    </div>
+    <button class="icon-btn" data-close="sidePanel" data-icon="x"></button>
+  </div>
+  <div class="dr-body" id="panelBody"></div>
+</aside>
+
+<div class="zoombar glass">
+  <button class="icon-btn" data-act="zoomOut" data-icon="minus" data-tip="کوچک‌نمایی"></button>
+  <button id="zoomLabel" data-act="zoomReset" title="۱۰۰٪">100%</button>
+  <button class="icon-btn" data-act="zoomIn" data-icon="plus" data-tip="بزرگ‌نمایی"></button>
+  <span class="tb-sep"></span>
+  <button class="icon-btn" data-act="center" data-icon="target" data-tip="مرکز نقشه"></button>
+  <button class="icon-btn" data-act="help" data-icon="keyboard" data-tip="میانبرها"></button>
+</div>
+<div class="hint glass">دوبار کلیک: ویرایش · کشیدن: جابجایی · کلیک راست: گزینه‌ها</div>
+
+<div id="ctxMenu" class="menu"></div>
+<div id="exportMenu" class="menu"></div>
+<div id="modal" class="modal-back"><div class="modal-card" id="modalCard"></div></div>
+<div id="toast"></div>
+<input type="file" id="fileInput" accept=".json,.md,.markdown,.txt" hidden>
+<script>
+'use strict';
+/* =====================================================================
+   Core: utilities, icons, colors, storage, projects, history
+   ===================================================================== */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const uid = () => Date.now().toString(36).slice(-5) + Math.random().toString(36).slice(2, 8);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const faNum = n => String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+
+const ICONS = {
+  folders: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  brain: '<circle cx="12" cy="12" r="3"/><circle cx="4.5" cy="6" r="2"/><circle cx="19.5" cy="6" r="2"/><circle cx="4.5" cy="18" r="2"/><circle cx="19.5" cy="18" r="2"/><path d="M6.2 7.2l3.3 3M17.8 7.2l-3.3 3M6.2 16.8l3.3-3M17.8 16.8l-3.3-3"/>',
+  undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+  redo: '<path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/>',
+  child: '<rect x="3" y="3" width="9" height="6" rx="2"/><rect x="12" y="15" width="9" height="6" rx="2"/><path d="M7.5 9v4a5 5 0 0 0 4.5 5"/>',
+  sibling: '<rect x="3" y="3" width="12" height="7" rx="2"/><rect x="3" y="14" width="12" height="7" rx="2"/><path d="M19.5 14.5v6M16.5 17.5h6"/>',
+  trash: '<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/>',
+  collapse: '<path d="m7 20 5-5 5 5M7 4l5 5 5-5"/>',
+  expand: '<path d="m7 15 5 5 5-5M7 9l5-5 5 5"/>',
+  expandOne: '<path d="m7 9 5 5 5-5"/><path d="M5 19h14"/>',
+  wand: '<path d="M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8 19 13M17.8 6.2 19 5M3 21l9-9M12.2 6.2 11 5"/>',
+  fit: '<path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/>',
+  download: '<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>',
+  upload: '<path d="M12 15V3M7 8l5-5 5 5M5 21h14"/>',
+  save: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>',
+  moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  sliders: '<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  minus: '<path d="M5 12h14"/>',
+  x: '<path d="M18 6 6 18M6 6l12 12"/>',
+  target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/>',
+  keyboard: '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>',
+  edit: '<path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+  copy: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+  palette: '<circle cx="13.5" cy="6.5" r="1"/><circle cx="17.5" cy="10.5" r="1"/><circle cx="8.5" cy="7.5" r="1"/><circle cx="6.5" cy="12.5" r="1"/><path d="M12 2a10 10 0 0 0 0 20c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2h2.4A5.6 5.6 0 0 0 22 10c0-4.4-4.5-8-10-8z"/>',
+  json: '<path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5a2 2 0 0 0 2 2h1M16 3h1a2 2 0 0 1 2 2v5a2 2 0 0 0 2 2 2 2 0 0 0-2 2v5a2 2 0 0 1-2 2h-1"/>',
+  md: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M6 15V9l2.5 3L11 9v6M16 9v6M14 13l2 2 2-2"/>',
+  reset: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>',
+  alignRight: '<path d="M21 6H3M21 12H9M21 18H7"/>',
+  alignLeft: '<path d="M3 6h18M3 12h12M3 18h14"/>',
+  alignCenter: '<path d="M3 6h18M7 12h10M5 18h14"/>',
+  type: '<path d="M4 7V4h16v3M9 20h6M12 4v16"/>',
+  gradient: '<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M3 15h18"/>',
+  crosshair: '<circle cx="12" cy="12" r="9"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/>',
+  unpin: '<path d="M5 12h14M12 5l7 7-7 7"/>',
+  link: '<path d="M4 20c4-8 8-12 16-16"/><circle cx="4" cy="20" r="1.5"/><circle cx="20" cy="4" r="1.5"/>'
+};
+const icon = n => `<svg class="i" viewBox="0 0 24 24">${ICONS[n] || ''}</svg>`;
+function hydrateIcons(root = document) {
+  $$('[data-icon]', root).forEach(el => {
+    const svg = icon(el.dataset.icon);
+    if (el.tagName === 'SPAN') el.outerHTML = svg; else el.innerHTML = svg;
+  });
+}
+
+/* ---------- constants ---------- */
+const PALETTES = {
+  vivid: ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#8b5cf6', '#ef4444', '#84cc16', '#f97316', '#3b82f6', '#d946ef', '#14b8a6'],
+  ocean: ['#0ea5e9', '#14b8a6', '#3b82f6', '#06b6d4', '#6366f1', '#0891b2', '#2563eb', '#0d9488'],
+  sunset: ['#f43f5e', '#f97316', '#f59e0b', '#ec4899', '#e11d48', '#ea580c', '#db2777', '#d97706'],
+  forest: ['#16a34a', '#65a30d', '#059669', '#0d9488', '#4d7c0f', '#15803d', '#047857', '#84cc16'],
+  candy: ['#a78bfa', '#f472b6', '#fb923c', '#34d399', '#22d3ee', '#facc15', '#f87171', '#60a5fa'],
+  mono: ['#475569', '#64748b', '#334155', '#52525b', '#57534e', '#44403c']
+};
+const PALETTE_NAMES = { vivid: 'رنگین‌کمان', ocean: 'اقیانوس', sunset: 'غروب', forest: 'جنگل', candy: 'آبنباتی', mono: 'خنثی' };
+const SWATCHES = ['#1e293b', '#4f46e5', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e', '#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#3b82f6', '#64748b'];
+const FONTS = [
+  ['Vazirmatn', 'وزیرمتن'], ['Noto Naskh Arabic', 'نسخ (Noto Naskh)'], ['Noto Sans Arabic', 'نوتو سنس'],
+  ['IBM Plex Sans Arabic', 'آی‌بی‌ام پلکس'], ['Readex Pro', 'ریدکس پرو'], ['Markazi Text', 'مرکزی'],
+  ['Amiri', 'امیری (کلاسیک)'], ['Noto Nastaliq Urdu', 'نستعلیق'], ['Lalezar', 'لاله‌زار (تیتر)'],
+  ['Reem Kufi', 'ریم کوفی'], ['El Messiri', 'المسیری'], ['Changa', 'چانگا'], ['Cairo', 'قاهره'],
+  ['Tajawal', 'تجوال'], ['Mada', 'مدى'], ['Harmattan', 'هرمتان'], ['Inter', 'Inter (لاتین)'], ['Poppins', 'Poppins (لاتین)']
+];
+const fontStack = f => `'${f}', 'Vazirmatn', Tahoma, sans-serif`;
+const DEFAULT_SETTINGS = {
+  layout: 'both', edgeStyle: 'curve', edgeWidth: 2.5, taper: true,
+  font: 'Vazirmatn', fontSize: 15, maxWidth: 320, minWidth: 140,
+  hGap: 70, vGap: 22, colorMode: 'branch', palette: 'vivid', rootColor: '#4f46e5',
+  shape: 'rounded', align: 'auto', animate: true
+};
+
+/* ---------- colors ---------- */
+function hex2rgb(h) {
+  h = String(h).replace('#', '');
+  if (h.length === 3) h = h.split('').map(c => c + c).join('');
+  const n = parseInt(h, 16) || 0;
+  return [n >> 16 & 255, n >> 8 & 255, n & 255];
+}
+const rgb2hex = (r, g, b) => '#' + [r, g, b].map(v => clamp(Math.round(v), 0, 255).toString(16).padStart(2, '0')).join('');
+function mix(a, b, t) {
+  const A = hex2rgb(a), B = hex2rgb(b);
+  return rgb2hex(A[0] + (B[0] - A[0]) * t, A[1] + (B[1] - A[1]) * t, A[2] + (B[2] - A[2]) * t);
+}
+function luminance(h) {
+  const [r, g, b] = hex2rgb(h).map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); });
+  return .2126 * r + .7152 * g + .0722 * b;
+}
+const textOn = h => luminance(h) > 0.33 ? '#0f172a' : '#ffffff';
+const rgba = (h, a) => { const [r, g, b] = hex2rgb(h); return `rgba(${r},${g},${b},${a})`; };
+const isHex = h => typeof h === 'string' && /^#([0-9a-f]{3}){1,2}$/i.test(h);
+
+/* ---------- state ---------- */
+const S = {
+  index: [],          // [{id,name,updated,count,color}]
+  project: null,      // current project object
+  sel: null,          // selected node id
+  map: new Map(),     // id -> {node,parent,depth,index}
+  undo: [], redo: [],
+  theme: 'light',
+  editing: null,
+  panelTab: 'node',
+  drag: null
+};
+const P = () => S.project;
+const R = () => S.project.root;
+const ST = () => S.project.settings;
+
+/* ---------- tree helpers ---------- */
+function makeNode(text = 'نود جدید') { return { id: uid(), text, collapsed: false, children: [] }; }
+function walk(node, fn, parent = null, depth = 0, index = 0) {
+  if (fn(node, parent, depth, index) === false) return;
+  (node.children || []).forEach((c, i) => walk(c, fn, node, depth + 1, i));
+}
+function reindex() {
+  S.map.clear();
+  walk(R(), (n, p, d, i) => { S.map.set(n.id, { node: n, parent: p, depth: d, index: i }); });
+}
+const getNode = id => S.map.get(id)?.node || null;
+const getParent = id => S.map.get(id)?.parent || null;
+function isInSubtree(rootNode, id) {
+  let found = false;
+  walk(rootNode, n => { if (n.id === id) { found = true; return false; } });
+  return found;
+}
+function countNodes(node) { let c = 0; walk(node, () => { c++; }); return c; }
+function cloneTree(node, freshIds = false) {
+  const c = JSON.parse(JSON.stringify(node, cleanReplacer));
+  if (freshIds) walk(c, n => { n.id = uid(); });
+  return c;
+}
+function cleanReplacer(k, v) { return k[0] === '_' ? undefined : v; }
+function normalizeNode(n) {
+  const out = {
+    id: typeof n.id === 'string' && n.id ? n.id : uid(),
+    text: String(n.text ?? n.title ?? n.name ?? ''),
+    collapsed: !!n.collapsed,
+    children: []
+  };
+  if (isHex(n.color)) out.color = n.color;
+  if (isHex(n.edgeColor)) out.edgeColor = n.edgeColor;
+  if (['right', 'left', 'center'].includes(n.align)) out.align = n.align;
+  if (n.off && isFinite(n.off.x) && isFinite(n.off.y) && (n.off.x || n.off.y)) out.off = { x: +n.off.x, y: +n.off.y };
+  const kids = Array.isArray(n.children) ? n.children : [];
+  out.children = kids.map(normalizeNode);
+  return out;
+}
+function ensureUniqueIds(root) {
+  const seen = new Set();
+  walk(root, n => { if (seen.has(n.id)) n.id = uid(); seen.add(n.id); });
+}
+
+/* ---------- storage ---------- */
+const LSK = { index: 'mindmap.index.v1', prefs: 'mindmap.prefs.v1', proj: id => 'mindmap.project.v1.' + id };
+const MEM = new Map(); // fallback when localStorage is unavailable (private mode, sandboxed file views)
+let lsOK = true;
+try { localStorage.setItem('mindmap.test', '1'); localStorage.removeItem('mindmap.test'); } catch (e) { lsOK = false; }
+function lsGet(k, def) {
+  try { const v = lsOK ? localStorage.getItem(k) : MEM.get(k); return v ? JSON.parse(v) : def; } catch (e) { return def; }
+}
+function lsSet(k, v) {
+  const s = typeof v === 'string' ? v : JSON.stringify(v);
+  if (!lsOK) { MEM.set(k, s); return true; }
+  try { localStorage.setItem(k, s); return true; }
+  catch (e) { toast('ذخیره‌سازی ناموفق بود — فضای مرورگر پر است'); return false; }
+}
+function lsDel(k) { MEM.delete(k); try { if (lsOK) localStorage.removeItem(k); } catch (e) { } }
+function savePrefs() { lsSet(LSK.prefs, { theme: S.theme, current: P()?.id }); }
+
+function serializeProject(p, withPositions = false) {
+  const data = {
+    app: 'zehn-negar-mindmap', version: 1,
+    id: p.id, name: p.name, created: p.created, updated: p.updated,
+    settings: p.settings, view: p.view,
+    root: JSON.parse(JSON.stringify(p.root, cleanReplacer))
+  };
+  if (withPositions) {
+    const addPos = (src, dst) => {
+      if (src._x != null) dst.pos = { x: Math.round(src._x), y: Math.round(src._y), w: Math.round(src._w || 0), h: Math.round(src._h || 0) };
+      src.children.forEach((c, i) => addPos(c, dst.children[i]));
+    };
+    addPos(p.root, data.root);
+  }
+  return data;
+}
+
+let saveTimer = 0;
+function saveNow() {
+  clearTimeout(saveTimer);
+  const p = P(); if (!p) return;
+  p.updated = Date.now();
+  const ok = lsSet(LSK.proj(p.id), JSON.stringify(serializeProject(p)));
+  const entry = S.index.find(e => e.id === p.id);
+  const meta = { id: p.id, name: p.name, updated: p.updated, count: countNodes(p.root), color: p.root.color || p.settings.rootColor };
+  if (entry) Object.assign(entry, meta); else S.index.unshift(meta);
+  lsSet(LSK.index, S.index);
+  savePrefs();
+  setSaveState(ok ? 'saved' : 'error');
+  if ($('#projectsPanel').classList.contains('open')) renderProjects();
+}
+function scheduleSave() {
+  setSaveState('pending');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveNow, 350);
+}
+function setSaveState(s) {
+  const el = $('#saveState');
+  el.classList.toggle('pending', s === 'pending');
+  el.querySelector('span').textContent = s === 'pending' ? 'در حال ذخیره…' : s === 'error' ? 'خطا در ذخیره' : 'ذخیره شد';
+}
+
+/* ---------- projects ---------- */
+function projectFromData(d, keepId = false) {
+  const p = {
+    id: keepId && d.id ? d.id : uid(),
+    name: String(d.name || 'نقشه بدون نام'),
+    created: d.created || Date.now(),
+    updated: Date.now(),
+    settings: Object.assign({}, DEFAULT_SETTINGS, d.settings || {}),
+    view: d.view && isFinite(d.view.x) ? { x: +d.view.x, y: +d.view.y, scale: clamp(+d.view.scale || 1, .1, 3) } : null,
+    root: normalizeNode(d.root || { text: d.name || 'موضوع اصلی' })
+  };
+  ensureUniqueIds(p.root);
+  return p;
+}
+function sampleRoot() {
+  const N = (text, children = [], extra = {}) => Object.assign({ id: uid(), text, collapsed: false, children }, extra);
+  return N('برنامه‌ریزی پروژه', [
+    N('اهداف', [N('افزایش کیفیت محصول'), N('کاهش زمان تحویل'), N('رضایت بیشتر کاربران')]),
+    N('تیم', [N('طراحی رابط کاربری'), N('توسعه', [N('فرانت‌اند'), N('بک‌اند'), N('تست و تضمین کیفیت')])]),
+    N('زمان‌بندی', [N('فاز ۱: تحقیق'), N('فاز ۲: نمونه اولیه'), N('فاز ۳: انتشار')], { collapsed: true }),
+    N('منابع و بودجه', [N('نیروی انسانی'), N('زیرساخت ابری')]),
+    N('Ideas (English)', [N('User research'), N('Quick prototype'), N('Feedback loop')]),
+    N('راهنما: دوبار کلیک برای ویرایش، Tab برای زیرنود، Enter برای نود هم‌سطح، نودها را بکشید تا جابجا شوند')
+  ]);
+}
+function createProject(name, root, settings) {
+  const p = projectFromData({ name, root: root || { text: 'موضوع اصلی' }, settings });
+  lsSet(LSK.proj(p.id), JSON.stringify(serializeProject(p)));
+  S.index.unshift({ id: p.id, name: p.name, updated: p.updated, count: countNodes(p.root), color: p.settings.rootColor });
+  lsSet(LSK.index, S.index);
+  return p;
+}
+function loadProject(id) {
+  if (S.editing) finishEdit(true);
+  if (P()) saveNow();
+  const d = lsGet(LSK.proj(id), null);
+  if (!d) { toast('پروژه پیدا نشد'); return false; }
+  S.project = projectFromData(d, true);
+  S.undo = []; S.redo = []; S.sel = S.project.root.id;
+  $('#projName').value = S.project.name;
+  savePrefs();
+  render({ instant: true });
+  if (S.project.view) applyView(); else fitView(false);
+  renderPanel(); renderProjects(); updateHistoryButtons();
+  return true;
+}
+async function deleteProject(id) {
+  const e = S.index.find(x => x.id === id); if (!e) return;
+  const ok = await confirmBox('حذف پروژه', `پروژه «${e.name}» برای همیشه حذف شود؟ این عمل قابل بازگشت نیست.`, 'حذف شود', true);
+  if (!ok) return;
+  lsDel(LSK.proj(id));
+  S.index = S.index.filter(x => x.id !== id);
+  lsSet(LSK.index, S.index);
+  if (P()?.id === id) {
+    S.project = null;
+    if (!S.index.length) { const p = createProject('نقشه جدید', { text: 'موضوع اصلی' }); loadProject(p.id); }
+    else loadProject(S.index[0].id);
+  }
+  renderProjects();
+  toast('پروژه حذف شد');
+}
+function duplicateProject(id) {
+  if (P()?.id === id) saveNow();
+  const d = lsGet(LSK.proj(id), null); if (!d) return;
+  d.name = d.name + ' (کپی)';
+  const p = projectFromData(d);
+  walk(p.root, n => { n.id = uid(); });
+  lsSet(LSK.proj(p.id), JSON.stringify(serializeProject(p)));
+  S.index.unshift({ id: p.id, name: p.name, updated: p.updated, count: countNodes(p.root), color: p.root.color || p.settings.rootColor });
+  lsSet(LSK.index, S.index);
+  renderProjects();
+  toast('کپی پروژه ساخته شد');
+}
+async function renameProject(id) {
+  const e = S.index.find(x => x.id === id); if (!e) return;
+  const name = await promptBox('تغییر نام پروژه', e.name);
+  if (!name) return;
+  if (P()?.id === id) { P().name = name; $('#projName').value = name; saveNow(); }
+  else {
+    const d = lsGet(LSK.proj(id), null);
+    if (d) { d.name = name; lsSet(LSK.proj(id), JSON.stringify(d)); }
+    e.name = name; lsSet(LSK.index, S.index);
+  }
+  renderProjects();
+}
+
+/* ---------- history ---------- */
+const snapshot = () => JSON.stringify({ root: P().root, settings: P().settings }, cleanReplacer);
+function pushHistory() {
+  S.undo.push(snapshot());
+  if (S.undo.length > 150) S.undo.shift();
+  S.redo = [];
+  updateHistoryButtons();
+}
+function restore(snap) {
+  const d = JSON.parse(snap);
+  P().root = d.root; P().settings = Object.assign({}, DEFAULT_SETTINGS, d.settings);
+  reindex();
+  if (!S.map.has(S.sel)) S.sel = P().root.id;
+  changed({ keepHistory: true });
+  renderPanel();
+}
+function undo() { if (!S.undo.length) return; S.redo.push(snapshot()); restore(S.undo.pop()); updateHistoryButtons(); }
+function redo() { if (!S.redo.length) return; S.undo.push(snapshot()); restore(S.redo.pop()); updateHistoryButtons(); }
+function updateHistoryButtons() {
+  $('[data-act=undo]').disabled = !S.undo.length;
+  $('[data-act=redo]').disabled = !S.redo.length;
+}
+/** Run a mutation with undo support, then re-render and autosave. */
+function mutate(fn, opts = {}) {
+  pushHistory();
+  fn();
+  changed(opts);
+}
+function changed(opts = {}) {
+  render(opts);
+  scheduleSave();
+  if (opts.panel !== false) renderPanel();
+}
+
+/* ---------- toast & modal ---------- */
+let toastTimer = 0;
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+let modalResolve = null;
+function openModal(html, resolve) {
+  $('#modalCard').innerHTML = html; hydrateIcons($('#modalCard'));
+  $('#modal').classList.add('open'); modalResolve = resolve || null;
+}
+function closeModal(value) {
+  $('#modal').classList.remove('open');
+  const r = modalResolve; modalResolve = null; if (r) r(value);
+}
+function confirmBox(title, msg, okText = 'تأیید', danger = false) {
+  return new Promise(res => {
+    openModal(`<h3>${esc(title)}</h3><p>${esc(msg)}</p><div class="row">
+      <button class="btn btn-ghost" data-r="0">انصراف</button>
+      <button class="btn ${danger ? 'btn-danger' : 'btn-primary'}" data-r="1">${esc(okText)}</button></div>`, res);
+    $$('#modalCard [data-r]').forEach(b => b.onclick = () => closeModal(b.dataset.r === '1'));
+    setTimeout(() => $('#modalCard [data-r="1"]').focus(), 40);
+  });
+}
+function promptBox(title, value = '', placeholder = '') {
+  return new Promise(res => {
+    openModal(`<h3>${esc(title)}</h3><input class="input" id="promptInput" dir="auto" value="${esc(value)}" placeholder="${esc(placeholder)}">
+      <div class="row"><button class="btn btn-ghost" data-r="0">انصراف</button><button class="btn btn-primary" data-r="1">تأیید</button></div>`, res);
+    const inp = $('#promptInput');
+    const ok = () => closeModal(inp.value.trim() || null);
+    $('#modalCard [data-r="1"]').onclick = ok;
+    $('#modalCard [data-r="0"]').onclick = () => closeModal(null);
+    inp.onkeydown = e => { if (e.key === 'Enter') ok(); };
+    setTimeout(() => { inp.focus(); inp.select(); }, 40);
+  });
+}
+
+/* =====================================================================
+   Rendering: colors, DOM sync, measurement, layout, edges, view
+   ===================================================================== */
+const viewport = $('#viewport'), world = $('#world'), nodesLayer = $('#nodes'), edgesSvg = $('#edges');
+const nodeEls = new Map();      // id -> element
+const lastPos = new Map();      // id -> {x,y} last painted position (for animation)
+let visibleNodes = [];
+let animRaf = 0;
+
+function computeColors() {
+  const st = ST(), pal = PALETTES[st.palette] || PALETTES.vivid, dark = S.theme === 'dark';
+  const maxT = dark ? .55 : .72, step = st.colorMode === 'gradient' ? .15 : .2;
+  const surface = dark ? '#141b2b' : '#ffffff';
+  walk(R(), (n, parent, depth, i) => {
+    let base, bd;
+    if (n.color) { base = n.color; bd = depth; }
+    else if (!parent) { base = st.rootColor; bd = 0; }
+    else if (st.colorMode !== 'gradient' && depth === 1) { base = pal[i % pal.length]; bd = 1; }
+    else { base = parent._base; bd = parent._bd; }
+    n._base = base; n._bd = bd;
+    const c = depth === bd ? base : mix(base, '#ffffff', Math.min(maxT, (depth - bd) * step));
+    if (st.colorMode === 'soft' && depth > 0) {
+      const acc = mix(base, surface, Math.min(.45, (depth - bd) * .14));
+      n._acc = acc;
+      n._bg = mix(acc, surface, dark ? .8 : .87);
+      n._fg = dark ? mix(acc, '#ffffff', .55) : mix(acc, '#000000', .5);
+      n._bd2 = acc;
+      n._edge = acc;
+    } else {
+      n._bg = c;
+      n._fg = textOn(c);
+      n._bd2 = mix(c, '#000000', .07);
+      n._acc = luminance(c) > .55 ? mix(c, '#000000', .3) : c;
+      n._edge = (!dark && luminance(c) > .72) ? mix(c, '#000000', .14) : c;
+    }
+  });
+}
+
+function applySettingsVars() {
+  const st = ST();
+  world.style.setProperty('--map-font', fontStack(st.font));
+  world.style.setProperty('--fs', st.fontSize + 'px');
+  world.style.setProperty('--node-max', Math.max(st.maxWidth, st.minWidth) + 'px');
+  world.style.setProperty('--node-min', st.minWidth + 'px');
+  world.dataset.shape = st.shape;
+}
+
+function createNodeEl(n) {
+  const el = document.createElement('div');
+  el.className = 'node';
+  el.dataset.id = n.id;
+  el.innerHTML = '<div class="txt" dir="auto"></div><button class="toggle" tabindex="-1"></button>';
+  return el;
+}
+
+function updateNodeEl(el, n) {
+  const d = n._depth;
+  const align = n.align || (ST().align !== 'auto' ? ST().align : '');
+  el.className = 'node ' + (d === 0 ? 'root' : d === 1 ? 'd1' : 'dn') +
+    (S.sel === n.id ? ' selected' : '') + (S.editing === n.id ? ' editing' : '') + (align ? ' al-' + align : '');
+  const txt = el.firstChild;
+  if (S.editing !== n.id && el._text !== n.text) { txt.textContent = n.text; el._text = n.text; }
+  const s = el.style;
+  s.setProperty('--nbg', n._bg); s.setProperty('--nfg', n._fg); s.setProperty('--nbd', n._bd2);
+  s.setProperty('--nacc', n._acc); s.setProperty('--nsh', rgba(n._acc, .5));
+  const tg = el.lastChild;
+  if (n.children.length) {
+    tg.style.display = '';
+    tg.textContent = n.collapsed ? faNum(n.children.length) : '−';
+    tg.title = n.collapsed ? 'باز کردن زیرنودها' : 'بستن زیرنودها';
+    tg.classList.toggle('closed', n.collapsed);
+  } else tg.style.display = 'none';
+}
+
+function updateToggleSide(el, n) {
+  const L = ST().layout, tg = el.lastChild;
+  let cls = 't-right';
+  if (L === 'down') cls = 't-bottom';
+  else if (L === 'outline-ltr') cls = 't-bl';
+  else if (L === 'outline-rtl') cls = 't-br';
+  else if (n._side === 'root') cls = 't-bottom';
+  else if (n._side === 'left') cls = 't-left';
+  tg.classList.remove('t-right', 't-left', 't-bottom', 't-bl', 't-br');
+  tg.classList.add(cls);
+}
+
+function render(opts = {}) {
+  if (!P()) return;
+  reindex();
+  applySettingsVars();
+  computeColors();
+  visibleNodes = [];
+  walk(R(), (n, parent, depth) => { n._depth = depth; visibleNodes.push(n); if (n.collapsed) return false; });
+  const vis = new Set(visibleNodes.map(n => n.id));
+  for (const [id, el] of nodeEls) if (!vis.has(id)) { el.remove(); nodeEls.delete(id); }
+  for (const n of visibleNodes) {
+    let el = nodeEls.get(n.id);
+    if (!el) { el = createNodeEl(n); nodeEls.set(n.id, el); nodesLayer.appendChild(el); }
+    updateNodeEl(el, n);
+  }
+  for (const n of visibleNodes) { const el = nodeEls.get(n.id); n._w = el.offsetWidth; n._h = el.offsetHeight; }
+  layout();
+  for (const n of visibleNodes) updateToggleSide(nodeEls.get(n.id), n);
+
+  const animate = ST().animate && !opts.instant && !S.drag;
+  cancelAnimationFrame(animRaf);
+  if (!animate) {
+    for (const n of visibleNodes) { n._x = n._tx; n._y = n._ty; }
+    paint();
+  } else startAnim();
+  updateToolbarState();
+}
+
+/* ---------- layout ---------- */
+function layout() {
+  const st = ST(), L = st.layout, root = R();
+  const sib = st.vGap, lvl = st.hGap;
+  const kids = n => n.collapsed ? [] : n.children;
+  const offOf = n => n.off || { x: 0, y: 0 };
+
+  // ----- horizontal trees (right / left / both)
+  const sizeH = n => {
+    const ks = kids(n);
+    const s = ks.reduce((a, k, i) => a + sizeH(k) + (i ? sib : 0), 0);
+    return (n._sz = Math.max(n._h, s));
+  };
+  const groupH = (list, anchorX, centerY, dir, ox, oy) => {
+    const total = list.reduce((a, k, i) => a + k._sz + (i ? sib : 0), 0);
+    let y = centerY - total / 2;
+    for (const k of list) { placeH(k, anchorX, y, dir, ox, oy); y += k._sz + sib; }
+  };
+  const placeH = (n, anchorX, top, dir, ox, oy) => {
+    const o = offOf(n); ox += o.x; oy += o.y;
+    const left = dir > 0 ? anchorX : anchorX - n._w;
+    const cy = top + n._sz / 2;
+    n._tx = left + ox; n._ty = cy - n._h / 2 + oy; n._side = dir > 0 ? 'right' : 'left';
+    groupH(kids(n), dir > 0 ? left + n._w + lvl : left - lvl, cy, dir, ox, oy);
+  };
+
+  // ----- vertical tree (down) — first child on the right (RTL)
+  const sizeV = n => {
+    const ks = kids(n);
+    const s = ks.reduce((a, k, i) => a + sizeV(k) + (i ? sib * 1.6 : 0), 0);
+    return (n._sz = Math.max(n._w, s));
+  };
+  const placeV = (n, centerX, top, ox, oy) => {
+    const o = offOf(n); ox += o.x; oy += o.y;
+    n._tx = centerX - n._w / 2 + ox; n._ty = top + oy; n._side = 'down';
+    const ks = kids(n);
+    const total = ks.reduce((a, k, i) => a + k._sz + (i ? sib * 1.6 : 0), 0);
+    let x = centerX + total / 2;
+    const childTop = top + n._h + lvl * .8;
+    for (const k of ks) { placeV(k, x - k._sz / 2, childTop, ox, oy); x -= k._sz + sib * 1.6; }
+  };
+
+  // ----- outline (indented list)
+  const indent = Math.max(30, lvl * .55);
+  let cursor = 0;
+  const placeO = (n, depth, rtl, ox, oy) => {
+    const o = offOf(n); ox += o.x; oy += o.y;
+    const left = rtl ? -depth * indent - n._w : depth * indent;
+    n._tx = left + ox; n._ty = cursor + oy; n._side = 'outline';
+    cursor += n._h + sib * .7;
+    for (const k of kids(n)) placeO(k, depth + 1, rtl, ox, oy);
+  };
+
+  if (L === 'down') {
+    sizeV(root);
+    placeV(root, 0, -root._h / 2, 0, 0);
+  } else if (L === 'outline-rtl' || L === 'outline-ltr') {
+    placeO(root, 0, L === 'outline-rtl', 0, 0);
+  } else if (L === 'right' || L === 'left') {
+    sizeH(root);
+    const dir = L === 'right' ? 1 : -1;
+    placeH(root, dir > 0 ? -root._w / 2 : root._w / 2, -root._sz / 2, dir, 0, 0);
+  } else { // both
+    const ks = kids(root);
+    ks.forEach(sizeH);
+    const sizes = ks.map(k => k._sz + sib), total = sizes.reduce((a, b) => a + b, 0);
+    let best = Math.ceil(ks.length / 2), bestDiff = Infinity, acc = 0;
+    for (let k = 0; k <= ks.length; k++) {
+      const diff = Math.abs(acc - (total - acc));
+      if (ks.length && k > 0 && diff < bestDiff) { bestDiff = diff; best = k; }
+      if (k < ks.length) acc += sizes[k];
+    }
+    const rightKids = ks.slice(0, best), leftKids = ks.slice(best);
+    const o = offOf(root);
+    root._tx = -root._w / 2 + o.x; root._ty = -root._h / 2 + o.y; root._side = 'root';
+    root._sz = root._h;
+    groupH(rightKids, root._w / 2 + lvl, 0, 1, o.x, o.y);
+    groupH(leftKids, -root._w / 2 - lvl, 0, -1, o.x, o.y);
+  }
+}
+
+/* ---------- painting & edges ---------- */
+function startAnim() {
+  const from = visibleNodes.map(n => {
+    let p = lastPos.get(n.id);
+    if (!p) {
+      const par = getParent(n.id), pp = par && lastPos.get(par.id);
+      p = pp ? { x: pp.x + ((par._w || 0) - n._w) / 2, y: pp.y + ((par._h || 0) - n._h) / 2 } : { x: n._tx, y: n._ty };
+    }
+    return [n, p.x, p.y];
+  });
+  const t0 = performance.now(), D = 280;
+  const step = now => {
+    const k = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - k, 3);
+    for (const [n, fx, fy] of from) { n._x = fx + (n._tx - fx) * e; n._y = fy + (n._ty - fy) * e; }
+    paint();
+    if (k < 1) animRaf = requestAnimationFrame(step);
+  };
+  animRaf = requestAnimationFrame(step);
+}
+
+function paint() {
+  for (const n of visibleNodes) {
+    const el = nodeEls.get(n.id); if (!el) continue;
+    el.style.transform = `translate(${n._x}px,${n._y}px)`;
+    lastPos.set(n.id, { x: n._x, y: n._y });
+  }
+  drawEdges();
+}
+
+function edgePath(x1, y1, x2, y2, vertical, style) {
+  const f = v => Math.round(v * 10) / 10;
+  if (style === 'straight') return `M${f(x1)} ${f(y1)}L${f(x2)} ${f(y2)}`;
+  if (!vertical) {
+    const dx = x2 - x1, dy = y2 - y1;
+    if (style === 'elbow') {
+      if (Math.abs(dy) < 1) return `M${f(x1)} ${f(y1)}H${f(x2)}`;
+      const mx = x1 + dx / 2, r = Math.min(12, Math.abs(dy) / 2, Math.abs(dx) / 2), sx = Math.sign(dx) || 1, sy = Math.sign(dy);
+      return `M${f(x1)} ${f(y1)}H${f(mx - sx * r)}Q${f(mx)} ${f(y1)} ${f(mx)} ${f(y1 + sy * r)}V${f(y2 - sy * r)}Q${f(mx)} ${f(y2)} ${f(mx + sx * r)} ${f(y2)}H${f(x2)}`;
+    }
+    return `M${f(x1)} ${f(y1)}C${f(x1 + dx * .5)} ${f(y1)} ${f(x2 - dx * .5)} ${f(y2)} ${f(x2)} ${f(y2)}`;
+  } else {
+    const dx = x2 - x1, dy = y2 - y1;
+    if (style === 'elbow') {
+      if (Math.abs(dx) < 1) return `M${f(x1)} ${f(y1)}V${f(y2)}`;
+      const my = y1 + dy / 2, r = Math.min(12, Math.abs(dx) / 2, Math.abs(dy) / 2), sx = Math.sign(dx), sy = Math.sign(dy) || 1;
+      return `M${f(x1)} ${f(y1)}V${f(my - sy * r)}Q${f(x1)} ${f(my)} ${f(x1 + sx * r)} ${f(my)}H${f(x2 - sx * r)}Q${f(x2)} ${f(my)} ${f(x2)} ${f(my + sy * r)}V${f(y2)}`;
+    }
+    return `M${f(x1)} ${f(y1)}C${f(x1)} ${f(y1 + dy * .5)} ${f(x2)} ${f(y2 - dy * .5)} ${f(x2)} ${f(y2)}`;
+  }
+}
+
+function drawEdges() {
+  const st = ST(), L = st.layout;
+  let out = '';
+  for (const c of visibleNodes) {
+    const info = S.map.get(c.id); const p = info && info.parent;
+    if (!p) continue;
+    let d;
+    if (L === 'down') {
+      d = edgePath(p._x + p._w / 2, p._y + p._h, c._x + c._w / 2, c._y, true, st.edgeStyle);
+    } else if (L === 'outline-ltr' || L === 'outline-rtl') {
+      const rtl = L === 'outline-rtl';
+      const x1 = rtl ? p._x + p._w - 20 : p._x + 20, y1 = p._y + p._h;
+      const x2 = rtl ? c._x + c._w : c._x, y2 = c._y + c._h / 2;
+      if (st.edgeStyle === 'straight') d = `M${x1} ${y1}V${y2}H${x2}`;
+      else {
+        const r = Math.min(12, Math.abs(y2 - y1), Math.abs(x2 - x1)), sx = Math.sign(x2 - x1) || 1;
+        d = `M${x1} ${y1}V${y2 - r}Q${x1} ${y2} ${x1 + sx * r} ${y2}H${x2}`;
+      }
+    } else if (c._side === 'left') {
+      d = edgePath(p._x, p._y + p._h / 2, c._x + c._w, c._y + c._h / 2, false, st.edgeStyle);
+    } else {
+      d = edgePath(p._x + p._w, p._y + p._h / 2, c._x, c._y + c._h / 2, false, st.edgeStyle);
+    }
+    const depth = info.depth;
+    const w = st.taper ? Math.max(1.2, st.edgeWidth * (depth === 1 ? 1.3 : Math.max(.5, 1 - (depth - 2) * .18))) : st.edgeWidth;
+    const color = c.edgeColor || p._edge;
+    out += `<path d="${d}" stroke="${color}" stroke-width="${w.toFixed(2)}"/>`;
+  }
+  edgesSvg.innerHTML = out;
+}
+
+/* ---------- view (pan / zoom) ---------- */
+let viewAnim = 0;
+function ensureView() { if (!P().view) P().view = { x: innerWidth / 2, y: innerHeight / 2 + 30, scale: 1 }; return P().view; }
+function applyView() {
+  const v = ensureView();
+  world.style.transform = `translate(${v.x}px,${v.y}px) scale(${v.scale})`;
+  const g = 26 * v.scale;
+  viewport.style.backgroundSize = `${g}px ${g}px`;
+  viewport.style.backgroundPosition = `${v.x}px ${v.y}px`;
+  $('#zoomLabel').textContent = Math.round(v.scale * 100) + '%';
+}
+function setView(x, y, scale, persist = true) {
+  cancelAnimationFrame(viewAnim);
+  Object.assign(ensureView(), { x, y, scale: clamp(scale, .1, 3) });
+  applyView();
+  if (persist) scheduleViewSave();
+}
+let viewSaveTimer = 0;
+function scheduleViewSave() { clearTimeout(viewSaveTimer); viewSaveTimer = setTimeout(() => saveNow(), 800); }
+function animateView(x, y, scale) {
+  cancelAnimationFrame(viewAnim);
+  const v = ensureView(), from = { ...v }, t0 = performance.now(), D = 360;
+  scale = clamp(scale, .1, 3);
+  const step = now => {
+    const k = Math.min(1, (now - t0) / D), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+    v.x = from.x + (x - from.x) * e; v.y = from.y + (y - from.y) * e; v.scale = from.scale + (scale - from.scale) * e;
+    applyView();
+    if (k < 1) viewAnim = requestAnimationFrame(step); else scheduleViewSave();
+  };
+  viewAnim = requestAnimationFrame(step);
+}
+const screenToWorld = (sx, sy) => { const v = ensureView(); return { x: (sx - v.x) / v.scale, y: (sy - v.y) / v.scale }; };
+function zoomAt(sx, sy, factor, smooth = false) {
+  const v = ensureView(), ns = clamp(v.scale * factor, .1, 3), k = ns / v.scale;
+  const nx = sx - (sx - v.x) * k, ny = sy - (sy - v.y) * k;
+  smooth ? animateView(nx, ny, ns) : setView(nx, ny, ns);
+}
+const viewCenter = () => ({ x: innerWidth / 2, y: (innerHeight + 68) / 2 });
+function centerOn(n, smooth = true, scale) {
+  const v = ensureView(), s = scale ?? v.scale, c = viewCenter();
+  const nx = c.x - (n._tx + n._w / 2) * s, ny = c.y - (n._ty + n._h / 2) * s;
+  smooth ? animateView(nx, ny, s) : setView(nx, ny, s);
+}
+function centerRoot(smooth = true) { centerOn(R(), smooth); }
+function contentBounds() {
+  let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity;
+  for (const n of visibleNodes) { a = Math.min(a, n._tx); b = Math.min(b, n._ty); c = Math.max(c, n._tx + n._w); d = Math.max(d, n._ty + n._h); }
+  return { x: a, y: b, w: c - a, h: d - b };
+}
+function fitView(smooth = true) {
+  if (!visibleNodes.length) return;
+  if (innerWidth < 80 || innerHeight < 80) { S.needFit = true; return; } // hidden window: fit once it has a size
+  S.needFit = false;
+  const B = contentBounds(), pad = 60, top = 80;
+  const W = innerWidth - pad * 2, H = innerHeight - top - pad * 1.5;
+  const s = clamp(Math.min(W / B.w, H / B.h), .15, 1.15);
+  const nx = innerWidth / 2 - (B.x + B.w / 2) * s, ny = top + (innerHeight - top) / 2 - (B.y + B.h / 2) * s;
+  smooth ? animateView(nx, ny, s) : setView(nx, ny, s);
+}
+function revealNode(n) {
+  if (!n || n._tx == null) return;
+  const v = ensureView(), m = 60;
+  const x1 = n._tx * v.scale + v.x, y1 = n._ty * v.scale + v.y, x2 = x1 + n._w * v.scale, y2 = y1 + n._h * v.scale;
+  let dx = 0, dy = 0;
+  if (x1 < m) dx = m - x1; else if (x2 > innerWidth - m) dx = innerWidth - m - x2;
+  if (y1 < 80 + m / 2) dy = 80 + m / 2 - y1; else if (y2 > innerHeight - m) dy = innerHeight - m - y2;
+  if (dx || dy) animateView(v.x + dx, v.y + dy, v.scale);
+}
+
+/* =====================================================================
+   Interaction: selection, node operations, editing, drag & drop,
+   pan / zoom, context menu, keyboard
+   ===================================================================== */
+const dropLine = $('#dropLine');
+const selected = () => getNode(S.sel);
+
+function select(id, reveal = false) {
+  if (S.sel !== id) {
+    nodeEls.get(S.sel)?.classList.remove('selected');
+    S.sel = id;
+    if (id) nodeEls.get(id)?.classList.add('selected');
+    renderPanel();
+    updateToolbarState();
+  }
+  if (reveal && id) revealNode(getNode(id));
+}
+function updateToolbarState() {
+  const n = selected(), isRoot = n && n === R();
+  $('[data-act=addSibling]').disabled = !n || isRoot;
+  $('[data-act=delete]').disabled = !n || isRoot;
+}
+
+/* ---------- node operations ---------- */
+function addChild(id = S.sel) {
+  const n = getNode(id) || R();
+  const c = makeNode(n === R() ? 'موضوع جدید' : 'زیرنود جدید');
+  mutate(() => { n.collapsed = false; n.children.push(c); S.sel = c.id; });
+  requestAnimationFrame(() => { revealNode(c); startEdit(c.id, true); });
+}
+function addSibling(id = S.sel) {
+  const n = getNode(id); if (!n) return;
+  const p = getParent(id); if (!p) return addChild(id);
+  const c = makeNode('نود جدید');
+  mutate(() => { p.children.splice(S.map.get(id).index + 1, 0, c); S.sel = c.id; });
+  requestAnimationFrame(() => { revealNode(c); startEdit(c.id, true); });
+}
+function deleteNode(id = S.sel) {
+  const n = getNode(id); if (!n) return;
+  const p = getParent(id);
+  if (!p) { toast('ریشه نقشه قابل حذف نیست'); return; }
+  const i = S.map.get(id).index;
+  mutate(() => {
+    p.children.splice(i, 1);
+    const next = p.children[i] || p.children[i - 1] || p;
+    S.sel = next.id;
+  });
+}
+function duplicateBranch(id = S.sel) {
+  const n = getNode(id), p = getParent(id); if (!n || !p) return;
+  const c = cloneTree(n, true); delete c.off;
+  mutate(() => { p.children.splice(S.map.get(id).index + 1, 0, c); S.sel = c.id; });
+}
+function toggleCollapse(id = S.sel) {
+  const n = getNode(id); if (!n || !n.children.length) return;
+  mutate(() => { n.collapsed = !n.collapsed; }, { panel: false });
+}
+function collapseSubtree(id) {
+  const n = getNode(id); if (!n) return;
+  mutate(() => walk(n, k => { if (k.children.length) k.collapsed = true; }));
+}
+function collapseAll() {
+  mutate(() => walk(R(), k => { if (k !== R() && k.children.length) k.collapsed = true; }));
+  toast('همه زیرنودها جمع شدند');
+}
+/** Opens exactly one more level: every collapsed node on the visible frontier gets expanded. */
+function expandLevel(id = R().id) {
+  const n = getNode(id); if (!n) return;
+  const frontier = [];
+  walk(n, k => { if (k.collapsed && k.children.length) { frontier.push(k); return false; } });
+  if (!frontier.length) { toast('همه زیرنودها باز هستند'); return; }
+  mutate(() => frontier.forEach(k => { k.collapsed = false; }));
+}
+function expandAll(id = R().id) {
+  const n = getNode(id); if (!n) return;
+  mutate(() => walk(n, k => { k.collapsed = false; }));
+}
+function arrange() {
+  mutate(() => walk(R(), k => { delete k.off; }));
+  toast('نقشه مرتب و فرمت شد');
+}
+function resetPositions(id) { const n = getNode(id); if (n) mutate(() => walk(n, k => { delete k.off; })); }
+function applyGradient(id, base) {
+  const n = getNode(id); if (!n) return;
+  base = base || n.color || n._base || ST().rootColor;
+  const maxT = S.theme === 'dark' ? .6 : .75;
+  mutate(() => {
+    const rec = (k, d) => { k.color = d === 0 ? base : mix(base, '#ffffff', Math.min(maxT, d * .17)); k.children.forEach(c => rec(c, d + 1)); };
+    rec(n, 0);
+  });
+}
+function clearColors(id) {
+  const n = getNode(id); if (!n) return;
+  mutate(() => walk(n, k => { delete k.color; delete k.edgeColor; }));
+}
+function setNodeProp(id, key, value) {
+  const n = getNode(id); if (!n) return;
+  mutate(() => { if (value == null || value === '') delete n[key]; else n[key] = value; });
+}
+
+/* ---------- inline editing ---------- */
+function startEdit(id, selectAll = false) {
+  const n = getNode(id), el = nodeEls.get(id);
+  if (!n || !el) return;
+  if (S.editing && S.editing !== id) finishEdit(true);
+  select(id);
+  S.editing = id;
+  el._orig = n.text;
+  el.classList.add('editing');
+  const txt = el.firstChild;
+  try { txt.contentEditable = 'plaintext-only'; } catch (e) { }
+  if (txt.contentEditable !== 'plaintext-only') txt.contentEditable = 'true';
+  txt.focus();
+  const range = document.createRange();
+  range.selectNodeContents(txt);
+  if (!selectAll) range.collapse(false);
+  const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+  let raf = 0;
+  txt.oninput = () => {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => { n.text = readEditText(txt); render({ instant: true }); });
+  };
+  txt.onpaste = ev => {
+    ev.preventDefault();
+    const t = (ev.clipboardData || window.clipboardData).getData('text/plain');
+    document.execCommand('insertText', false, t);
+  };
+  txt.onblur = () => { if (S.editing === id) finishEdit(true); };
+}
+const readEditText = txt => txt.innerText.replace(/ /g, ' ').replace(/\n+$/, '');
+function finishEdit(commit = true) {
+  const id = S.editing; if (!id) return;
+  S.editing = null;
+  const n = getNode(id), el = nodeEls.get(id);
+  if (!n || !el) return;
+  const txt = el.firstChild;
+  const orig = el._orig ?? n.text;
+  let val = commit ? readEditText(txt) : orig;
+  if (!val.trim()) val = orig && orig.trim() ? orig : 'بدون عنوان';
+  txt.oninput = txt.onblur = txt.onpaste = null;
+  txt.contentEditable = 'false';
+  el.classList.remove('editing');
+  window.getSelection()?.removeAllRanges();
+  el._text = null;
+  n.text = orig;
+  if (val !== orig) { pushHistory(); n.text = val; changed(); }
+  else render({ instant: true });
+}
+
+/* ---------- drag & drop ---------- */
+function beginNodeDrag(e, id) {
+  const n = getNode(id);
+  const start = { x: e.clientX, y: e.clientY };
+  const subIds = new Set(); walk(n, k => { subIds.add(k.id); });
+  let origin = null, active = false, target = null, force = false;
+  const move = ev => {
+    if (!active) {
+      if (Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < 5) return;
+      active = true; S.drag = { id };
+      cancelAnimationFrame(animRaf);
+      origin = visibleNodes.filter(k => subIds.has(k.id)).map(k => [k, k._x, k._y]);
+      origin.forEach(([k]) => nodeEls.get(k.id)?.classList.add(k === n ? 'dragging' : 'drag-sub'));
+      nodeEls.get(id).style.zIndex = 10;
+      closeMenus();
+    }
+    const s = ensureView().scale, dx = (ev.clientX - start.x) / s, dy = (ev.clientY - start.y) / s;
+    for (const [k, x, y] of origin) { k._x = x + dx; k._y = y + dy; }
+    paint();
+    force = ev.shiftKey || ev.altKey;
+    target = (n === R() || force) ? null : findDropTarget(screenToWorld(ev.clientX, ev.clientY), subIds);
+    showDropIndicator(target);
+  };
+  const up = () => {
+    window.removeEventListener('pointermove', move);
+    window.removeEventListener('pointerup', up);
+    window.removeEventListener('pointercancel', up);
+    if (!active) return;
+    origin.forEach(([k]) => nodeEls.get(k.id)?.classList.remove('dragging', 'drag-sub'));
+    nodeEls.get(id).style.zIndex = '';
+    showDropIndicator(null);
+    S.drag = null;
+    applyDrop(n, target);
+  };
+  window.addEventListener('pointermove', move);
+  window.addEventListener('pointerup', up);
+  window.addEventListener('pointercancel', up);
+}
+
+function findDropTarget(p, subIds) {
+  const along = ST().layout === 'down' ? 'x' : 'y';
+  const band = ST().vGap / 2 + 8;
+  let best = null, bestDist = Infinity;
+  for (const t of visibleNodes) {
+    if (subIds.has(t.id)) continue;
+    const x1 = t._tx, y1 = t._ty, x2 = x1 + t._w, y2 = y1 + t._h, isRoot = t === R();
+    if (p.x >= x1 && p.x <= x2 && p.y >= y1 && p.y <= y2) {
+      if (isRoot) return { type: 'child', node: t };
+      const rel = along === 'y' ? (p.y - y1) / t._h : (p.x - x1) / t._w;
+      if (rel < .28) return { type: along === 'y' ? 'before' : 'after', node: t };
+      if (rel > .72) return { type: along === 'y' ? 'after' : 'before', node: t };
+      return { type: 'child', node: t };
+    }
+    if (isRoot) continue;
+    let dist, type;
+    if (along === 'y') {
+      if (p.x < x1 - 10 || p.x > x2 + 10) continue;
+      dist = p.y < y1 ? y1 - p.y : p.y - y2; type = p.y < y1 ? 'before' : 'after';
+    } else {
+      if (p.y < y1 - 10 || p.y > y2 + 10) continue;
+      dist = p.x < x1 ? x1 - p.x : p.x - x2; type = p.x > x2 ? 'before' : 'after';
+    }
+    if (dist <= band && dist < bestDist) { bestDist = dist; best = { type, node: t }; }
+  }
+  return best;
+}
+
+function showDropIndicator(t) {
+  $$('.node.drop-child').forEach(e => e.classList.remove('drop-child'));
+  dropLine.style.display = 'none';
+  if (!t) return;
+  if (t.type === 'child') { nodeEls.get(t.node.id)?.classList.add('drop-child'); return; }
+  const n = t.node, g = Math.max(5, ST().vGap / 2), s = dropLine.style;
+  s.display = 'block';
+  if (ST().layout !== 'down') {
+    const y = t.type === 'before' ? n._ty - g : n._ty + n._h + g;
+    Object.assign(s, { left: n._tx + 'px', top: (y - 2) + 'px', width: n._w + 'px', height: '4px' });
+  } else {
+    const x = t.type === 'before' ? n._tx + n._w + g * 1.6 : n._tx - g * 1.6;
+    Object.assign(s, { left: (x - 2) + 'px', top: n._ty + 'px', width: '4px', height: n._h + 'px' });
+  }
+}
+
+function applyDrop(n, target) {
+  if (!target) {
+    const dx = n._x - n._tx, dy = n._y - n._ty;
+    if (Math.abs(dx) < 1 && Math.abs(dy) < 1) { render(); return; }
+    mutate(() => {
+      const o = n.off || { x: 0, y: 0 };
+      n.off = { x: Math.round(o.x + dx), y: Math.round(o.y + dy) };
+    }, { instant: true, panel: false });
+    return;
+  }
+  const t = target.node, oldParent = getParent(n.id), oldIndex = S.map.get(n.id).index;
+  if (target.type === 'child') {
+    if (oldParent === t && oldIndex === t.children.length - 1 && !n.off) { render(); return; }
+    mutate(() => { oldParent.children.splice(oldIndex, 1); t.children.push(n); t.collapsed = false; delete n.off; });
+    toast('نود به زیرمجموعه «' + t.text.slice(0, 24) + '» منتقل شد');
+    return;
+  }
+  const np = getParent(t.id);
+  let idx = S.map.get(t.id).index + (target.type === 'after' ? 1 : 0);
+  if (np === oldParent && oldIndex < idx) idx--;
+  if (np === oldParent && idx === oldIndex && !n.off) { render(); return; }
+  mutate(() => { oldParent.children.splice(oldIndex, 1); np.children.splice(idx, 0, n); delete n.off; });
+}
+
+/* ---------- pan / zoom / pointer ---------- */
+function beginPan(e, deselectOnClick = true) {
+  const v = ensureView(), sx = e.clientX, sy = e.clientY, ox = v.x, oy = v.y;
+  let moved = false;
+  viewport.classList.add('panning');
+  try { viewport.setPointerCapture(e.pointerId); } catch (_) { }
+  const move = ev => {
+    const dx = ev.clientX - sx, dy = ev.clientY - sy;
+    if (!moved && Math.hypot(dx, dy) < 3) return;
+    moved = true; setView(ox + dx, oy + dy, v.scale);
+  };
+  const up = () => {
+    viewport.classList.remove('panning');
+    viewport.removeEventListener('pointermove', move);
+    viewport.removeEventListener('pointerup', up);
+    viewport.removeEventListener('pointercancel', up);
+    if (!moved && deselectOnClick) select(null);
+  };
+  viewport.addEventListener('pointermove', move);
+  viewport.addEventListener('pointerup', up);
+  viewport.addEventListener('pointercancel', up);
+}
+
+viewport.addEventListener('pointerdown', e => {
+  closeMenus();
+  if (e.button === 2) return;
+  if (e.button === 1) { e.preventDefault(); beginPan(e, false); return; }
+  const tg = e.target.closest('.toggle');
+  if (tg) { e.preventDefault(); if (S.editing) finishEdit(true); toggleCollapse(tg.parentElement.dataset.id); return; }
+  const el = e.target.closest('.node');
+  if (el) {
+    const id = el.dataset.id;
+    if (S.editing === id) return;
+    e.preventDefault();
+    if (S.editing) finishEdit(true);
+    select(id);
+    beginNodeDrag(e, id);
+    return;
+  }
+  if (S.editing) finishEdit(true);
+  beginPan(e);
+});
+viewport.addEventListener('dblclick', e => {
+  const el = e.target.closest('.node');
+  if (el && !e.target.closest('.toggle')) startEdit(el.dataset.id);
+  else if (!el && visibleNodes.length) fitView();
+});
+viewport.addEventListener('wheel', e => {
+  e.preventDefault();
+  if (e.shiftKey && !e.ctrlKey) { const v = ensureView(); setView(v.x - e.deltaY, v.y - e.deltaX, v.scale); return; }
+  const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+  zoomAt(e.clientX, e.clientY, Math.exp(-clamp(dy, -120, 120) * (e.ctrlKey ? .01 : .0018)));
+}, { passive: false });
+viewport.addEventListener('contextmenu', e => {
+  e.preventDefault();
+  const el = e.target.closest('.node');
+  if (el) { if (S.editing) finishEdit(true); select(el.dataset.id); openNodeMenu(e.clientX, e.clientY, getNode(el.dataset.id)); }
+  else openCanvasMenu(e.clientX, e.clientY);
+});
+
+/* ---------- menus ---------- */
+function openMenu(menu, items, x, y) {
+  closeMenus();
+  menu.innerHTML = items.map((it, i) => {
+    if (it === '-') return '<div class="sep"></div>';
+    if (it.header) return `<div class="mlabel">${esc(it.header)}</div>`;
+    return `<button data-i="${i}" class="${it.danger ? 'danger' : ''}" ${it.disabled ? 'disabled style="opacity:.4;pointer-events:none"' : ''}>${icon(it.icon)}<span>${esc(it.label)}</span>${it.kbd ? `<span class="kbd">${it.kbd}</span>` : ''}</button>`;
+  }).join('');
+  menu.querySelectorAll('button[data-i]').forEach(b => b.onclick = ev => { ev.stopPropagation(); closeMenus(); items[+b.dataset.i].act(); });
+  menu.classList.add('open');
+  const r = menu.getBoundingClientRect();
+  menu.style.left = clamp(x - r.width, 8, innerWidth - r.width - 8) + 'px';
+  menu.style.top = clamp(y, 8, innerHeight - r.height - 8) + 'px';
+}
+function closeMenus() { $$('.menu.open').forEach(m => m.classList.remove('open')); }
+document.addEventListener('pointerdown', e => { if (!e.target.closest('.menu') && !e.target.closest('#btnExport')) closeMenus(); });
+
+function openNodeMenu(x, y, n) {
+  const isRoot = n === R(), has = n.children.length > 0;
+  openMenu($('#ctxMenu'), [
+    { icon: 'edit', label: 'ویرایش متن', kbd: 'F2', act: () => startEdit(n.id, true) },
+    { icon: 'child', label: 'افزودن زیرنود', kbd: 'Tab', act: () => addChild(n.id) },
+    { icon: 'sibling', label: 'افزودن نود هم‌سطح', kbd: 'Enter', act: () => addSibling(n.id), disabled: isRoot },
+    { icon: 'copy', label: 'تکثیر شاخه', kbd: 'Ctrl+D', act: () => duplicateBranch(n.id), disabled: isRoot },
+    '-',
+    { header: 'زیرنودها' },
+    { icon: n.collapsed ? 'expand' : 'collapse', label: n.collapsed ? 'باز کردن زیرنودها' : 'بستن زیرنودها', kbd: 'Space', act: () => toggleCollapse(n.id), disabled: !has },
+    { icon: 'collapse', label: 'جمع کردن همه زیرنودها', act: () => collapseSubtree(n.id), disabled: !has },
+    { icon: 'expandOne', label: 'باز کردن یک مرحله', act: () => expandLevel(n.id), disabled: !has },
+    { icon: 'expand', label: 'باز کردن همه زیرنودها', act: () => expandAll(n.id), disabled: !has },
+    '-',
+    { icon: 'palette', label: 'رنگ و استایل…', act: () => openSidePanel('node') },
+    { icon: 'gradient', label: 'طیف رنگی پررنگ ← کم‌رنگ برای شاخه', act: () => applyGradient(n.id) },
+    { icon: 'reset', label: 'حذف رنگ‌های سفارشی شاخه', act: () => clearColors(n.id) },
+    { icon: 'crosshair', label: 'بازنشانی موقعیت شاخه', act: () => resetPositions(n.id) },
+    '-',
+    { icon: 'trash', label: 'حذف نود و زیرنودها', kbd: 'Del', danger: true, act: () => deleteNode(n.id), disabled: isRoot }
+  ], x, y);
+}
+function openCanvasMenu(x, y) {
+  openMenu($('#ctxMenu'), [
+    { icon: 'child', label: 'افزودن موضوع به ریشه', act: () => addChild(R().id) },
+    { icon: 'wand', label: 'مرتب‌سازی و فرمت نقشه', kbd: 'Ctrl+L', act: arrange },
+    { icon: 'fit', label: 'نمایش کامل نقشه', kbd: 'F', act: () => fitView() },
+    { icon: 'target', label: 'رفتن به ریشه', act: () => centerRoot() },
+    '-',
+    { icon: 'collapse', label: 'جمع کردن همه', act: collapseAll },
+    { icon: 'expandOne', label: 'باز کردن یک مرحله', act: () => expandLevel() },
+    { icon: 'expand', label: 'باز کردن همه', act: () => expandAll() },
+    '-',
+    { icon: 'sliders', label: 'تنظیمات نقشه…', act: () => openSidePanel('settings') }
+  ], x, y);
+}
+
+/* ---------- keyboard ---------- */
+function navigate(dir) {
+  const n = selected() || R(); if (n._tx == null) return;
+  const cx = n._tx + n._w / 2, cy = n._ty + n._h / 2;
+  let best = null, bestScore = Infinity;
+  for (const k of visibleNodes) {
+    if (k === n) continue;
+    const dx = k._tx + k._w / 2 - cx, dy = k._ty + k._h / 2 - cy;
+    const primary = dir === 'left' ? -dx : dir === 'right' ? dx : dir === 'up' ? -dy : dy;
+    const secondary = dir === 'left' || dir === 'right' ? Math.abs(dy) : Math.abs(dx);
+    if (primary <= 2) continue;
+    const score = primary + secondary * 2.2;
+    if (score < bestScore) { bestScore = score; best = k; }
+  }
+  if (best) select(best.id, true);
+}
+
+document.addEventListener('keydown', e => {
+  if ($('#modal').classList.contains('open')) { if (e.key === 'Escape') closeModal(null); return; }
+  if (S.editing) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); finishEdit(true); }
+    else if (e.key === 'Escape') { e.preventDefault(); finishEdit(false); }
+    else if (e.key === 'Tab') { e.preventDefault(); finishEdit(true); addChild(); }
+    return;
+  }
+  const mod = e.ctrlKey || e.metaKey, code = e.code;
+  if (mod && code === 'KeyS') { e.preventDefault(); saveNow(); toast('پروژه ذخیره شد'); return; }
+  const ae = document.activeElement;
+  if (ae && (['INPUT', 'TEXTAREA', 'SELECT'].includes(ae.tagName) || ae.isContentEditable)) return;
+  if (mod && code === 'KeyZ') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+  if (mod && code === 'KeyY') { e.preventDefault(); redo(); return; }
+  if (mod && code === 'KeyL') { e.preventDefault(); arrange(); return; }
+  if (mod && code === 'KeyD') { e.preventDefault(); duplicateBranch(); return; }
+  if (mod) return;
+  if (e.key === 'Escape') { closeMenus(); select(null); return; }
+  const n = selected();
+  switch (e.key) {
+    case 'Tab': e.preventDefault(); addChild(); return;
+    case 'Enter': e.preventDefault(); n ? addSibling() : addChild(R().id); return;
+    case 'F2': e.preventDefault(); if (n) startEdit(n.id, true); return;
+    case 'Delete': case 'Backspace': e.preventDefault(); deleteNode(); return;
+    case ' ': e.preventDefault(); if (n) toggleCollapse(n.id); return;
+    case 'ArrowUp': e.preventDefault(); navigate('up'); return;
+    case 'ArrowDown': e.preventDefault(); navigate('down'); return;
+    case 'ArrowLeft': e.preventDefault(); navigate('left'); return;
+    case 'ArrowRight': e.preventDefault(); navigate('right'); return;
+    case '+': case '=': zoomAt(innerWidth / 2, innerHeight / 2, 1.2, true); return;
+    case '-': case '_': zoomAt(innerWidth / 2, innerHeight / 2, 1 / 1.2, true); return;
+  }
+  if (code === 'KeyF') fitView();
+});
+
+/* =====================================================================
+   Panels: projects list, node inspector, map settings
+   ===================================================================== */
+const fmtDate = ts => { try { return new Intl.DateTimeFormat('fa-IR', { dateStyle: 'medium', timeStyle: 'short' }).format(ts); } catch (e) { return new Date(ts).toLocaleString(); } };
+
+function renderProjects() {
+  const list = $('#projList');
+  const items = [...S.index].sort((a, b) => b.updated - a.updated);
+  list.innerHTML = items.map(p => {
+    const c = isHex(p.color) ? p.color : '#6366f1';
+    return `<div class="proj-item ${p.id === P()?.id ? 'active' : ''}" data-id="${p.id}">
+      <div class="proj-dot" style="background:linear-gradient(135deg,${c},${mix(c, '#ffffff', .35)})">${esc([...String(p.name).trim()][0] || '؟')}</div>
+      <div class="proj-meta"><b dir="auto">${esc(p.name)}</b><small>${faNum(p.count || 1)} نود · ${fmtDate(p.updated)}</small></div>
+      <div class="proj-actions">
+        <button class="icon-btn" data-pa="rename" title="تغییر نام">${icon('edit')}</button>
+        <button class="icon-btn" data-pa="dup" title="ساخت کپی">${icon('copy')}</button>
+        <button class="icon-btn" data-pa="del" title="حذف">${icon('trash')}</button>
+      </div></div>`;
+  }).join('') || '<div class="empty">هنوز پروژه‌ای ندارید</div>';
+}
+$('#projList').addEventListener('click', e => {
+  const item = e.target.closest('.proj-item'); if (!item) return;
+  const id = item.dataset.id, act = e.target.closest('[data-pa]')?.dataset.pa;
+  if (act === 'rename') return renameProject(id);
+  if (act === 'dup') return duplicateProject(id);
+  if (act === 'del') return deleteProject(id);
+  if (id !== P()?.id) { loadProject(id); toast('پروژه «' + P().name + '» باز شد'); }
+  if (innerWidth < 760) $('#projectsPanel').classList.remove('open');
+});
+
+function openSidePanel(tab) {
+  if (tab) S.panelTab = tab;
+  $('#sidePanel').classList.add('open');
+  $('#btnPanel').classList.add('active');
+  renderPanel();
+}
+function closeDrawer(id) {
+  $('#' + id).classList.remove('open');
+  if (id === 'sidePanel') $('#btnPanel').classList.remove('active');
+  if (id === 'projectsPanel') $('#btnProjects').classList.remove('active');
+}
+$$('#sidePanel .tabs button').forEach(b => b.onclick = () => { S.panelTab = b.dataset.tab; renderPanel(); });
+
+/* live (continuous) edits push a single history entry per gesture */
+function liveNode(id, key, val) {
+  const n = getNode(id); if (!n) return;
+  if (!S._live) { pushHistory(); S._live = true; }
+  n[key] = val; render({ instant: true }); scheduleSave();
+}
+function liveSetting(key, val) {
+  if (!S._live) { pushHistory(); S._live = true; }
+  ST()[key] = val; render({ instant: true }); scheduleSave();
+}
+const endLive = () => { S._live = false; };
+
+const swatchBtns = (active, attr) => SWATCHES.map(c => `<button class="sw ${active === c ? 'active' : ''}" style="background:${c}" data-${attr}="${c}" title="${c}"></button>`).join('');
+
+function renderPanel() {
+  if (!$('#sidePanel').classList.contains('open') || !P()) return;
+  $$('#sidePanel .tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === S.panelTab));
+  const body = $('#panelBody');
+  if (S.panelTab === 'settings') { body.innerHTML = settingsHTML(); bindSettings(body); }
+  else {
+    const n = selected();
+    if (!n) { body.innerHTML = `<div class="empty">${icon('crosshair')}<br>یک نود را انتخاب کنید تا رنگ، یال، چینش متن و زیرنودهای آن را تنظیم کنید.</div>`; return; }
+    body.innerHTML = nodeHTML(n); bindNode(body, n);
+  }
+}
+
+function nodeHTML(n) {
+  const isRoot = n === R(), has = n.children.length > 0;
+  const base = n.color || n._base || ST().rootColor;
+  const shades = [-.45, -.3, -.15, 0, .2, .4, .58, .75].map(t => t < 0 ? mix(base, '#000000', -t) : mix(base, '#ffffff', t));
+  const aligns = [['', 'type', 'خودکار (بر اساس زبان)'], ['right', 'alignRight', 'راست‌چین'], ['center', 'alignCenter', 'وسط‌چین'], ['left', 'alignLeft', 'چپ‌چین']];
+  const parent = getParent(n.id);
+  return `
+  <div class="sec"><div class="sec-title">${icon('edit')} متن نود</div>
+    <textarea class="input" id="nText" dir="auto">${esc(n.text)}</textarea>
+    <div class="seg" style="margin-top:8px">${aligns.map(([v, ic, lb]) => `<button data-align="${v}" class="${(n.align || '') === v ? 'active' : ''}" title="${lb}">${icon(ic)}</button>`).join('')}</div>
+  </div>
+  <div class="sec"><div class="sec-title">${icon('palette')} رنگ نود</div>
+    <div class="swatches">
+      <button class="sw none ${!n.color ? 'active' : ''}" data-bg="" title="خودکار">${icon('x')}</button>
+      ${swatchBtns(n.color, 'bg')}
+      <label class="sw pick" title="رنگ دلخواه"><input type="color" id="nBgPick" value="${n._base && isHex(n._bg) ? n._bg : base}"></label>
+    </div>
+    <div class="sec-title" style="margin:14px 0 0">طیف پررنگ ← کم‌رنگ</div>
+    <div class="shade-row">${shades.map(c => `<span style="background:${c};cursor:pointer" data-bg="${c}" title="${c}"></span>`).join('')}</div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn btn-ghost btn-sm" data-na="gradient">${icon('gradient')}طیف برای کل شاخه</button>
+      <button class="btn btn-ghost btn-sm" data-na="clearColors">${icon('reset')}حذف رنگ‌ها</button>
+    </div>
+  </div>
+  <div class="sec"><div class="sec-title">${icon('link')} رنگ یال</div>
+    ${isRoot ? '<div class="node-preview">ریشه یال ورودی ندارد. به‌طور پیش‌فرض رنگ هر یال برابر رنگ پس‌زمینه نود پدر است.</div>' : `
+    <div class="swatches">
+      <button class="sw none ${!n.edgeColor ? 'active' : ''}" data-edge="" title="پیش‌فرض (رنگ پدر)">${icon('x')}</button>
+      <button class="sw" style="background:${parent._edge}" data-edge="" title="رنگ نود پدر"></button>
+      ${swatchBtns(n.edgeColor, 'edge')}
+      <label class="sw pick" title="رنگ دلخواه"><input type="color" id="nEdgePick" value="${n.edgeColor || parent._edge}"></label>
+    </div>
+    <div class="row" style="margin-top:10px"><button class="btn btn-ghost btn-sm" data-na="edgeSubtree">${icon('link')}اعمال همین رنگ به یال‌های زیرشاخه</button></div>`}
+  </div>
+  <div class="sec"><div class="sec-title">${icon('child')} زیرنودها (${faNum(n.children.length)})</div>
+    <div class="row">
+      <button class="btn btn-ghost btn-sm" data-na="toggle" ${has ? '' : 'disabled'}>${icon(n.collapsed ? 'expand' : 'collapse')}${n.collapsed ? 'باز کردن' : 'بستن'}</button>
+      <button class="btn btn-ghost btn-sm" data-na="collapseSub" ${has ? '' : 'disabled'}>${icon('collapse')}جمع کردن همه</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button class="btn btn-ghost btn-sm" data-na="expandLevel" ${has ? '' : 'disabled'}>${icon('expandOne')}یک مرحله باز</button>
+      <button class="btn btn-ghost btn-sm" data-na="expandAll" ${has ? '' : 'disabled'}>${icon('expand')}باز کردن همه</button>
+    </div>
+  </div>
+  <div class="sec"><div class="sec-title">${icon('sliders')} عملیات</div>
+    <div class="row"><button class="btn btn-ghost btn-sm" data-na="addChild">${icon('child')}زیرنود</button>
+      <button class="btn btn-ghost btn-sm" data-na="addSibling" ${isRoot ? 'disabled' : ''}>${icon('sibling')}هم‌سطح</button>
+      <button class="btn btn-ghost btn-sm" data-na="duplicate" ${isRoot ? 'disabled' : ''}>${icon('copy')}تکثیر</button></div>
+    <div class="row" style="margin-top:8px"><button class="btn btn-ghost btn-sm" data-na="resetPos" ${n.off ? '' : ''}>${icon('crosshair')}بازنشانی موقعیت</button>
+      <button class="btn btn-danger btn-sm" data-na="delete" ${isRoot ? 'disabled style="opacity:.4"' : ''}>${icon('trash')}حذف</button></div>
+  </div>`;
+}
+
+function bindNode(body, n) {
+  const id = n.id;
+  const t = $('#nText', body);
+  t.oninput = () => liveNode(id, 'text', t.value);
+  t.onblur = endLive;
+  t.onkeydown = e => { if (e.key === 'Escape') t.blur(); };
+  $$('[data-align]', body).forEach(b => b.onclick = () => setNodeProp(id, 'align', b.dataset.align || null));
+  $$('[data-bg]', body).forEach(b => b.onclick = () => setNodeProp(id, 'color', b.dataset.bg || null));
+  $$('[data-edge]', body).forEach(b => b.onclick = () => setNodeProp(id, 'edgeColor', b.dataset.edge || null));
+  const bgp = $('#nBgPick', body); bgp.oninput = () => liveNode(id, 'color', bgp.value); bgp.onchange = () => { endLive(); renderPanel(); };
+  const ep = $('#nEdgePick', body);
+  if (ep) { ep.oninput = () => liveNode(id, 'edgeColor', ep.value); ep.onchange = () => { endLive(); renderPanel(); }; }
+  const acts = {
+    gradient: () => applyGradient(id), clearColors: () => clearColors(id),
+    edgeSubtree: () => mutate(() => walk(n, k => { if (k === n) return; if (n.edgeColor) k.edgeColor = n.edgeColor; else delete k.edgeColor; })),
+    toggle: () => toggleCollapse(id), collapseSub: () => collapseSubtree(id), expandLevel: () => expandLevel(id), expandAll: () => expandAll(id),
+    addChild: () => addChild(id), addSibling: () => addSibling(id), duplicate: () => duplicateBranch(id),
+    resetPos: () => resetPositions(id), delete: () => deleteNode(id)
+  };
+  $$('[data-na]', body).forEach(b => b.onclick = () => acts[b.dataset.na]?.());
+}
+
+const LAYOUTS = [['both', 'دوطرفه'], ['right', 'رو به راست'], ['left', 'رو به چپ'], ['down', 'درختی عمودی'], ['outline-rtl', 'فهرست راست‌چین'], ['outline-ltr', 'فهرست چپ‌چین']];
+function layoutSvg(k) {
+  const r = (x, y, w, h, f) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2" fill="${f ? 'var(--accent)' : 'currentColor'}" opacity="${f ? 1 : .45}"/>`;
+  const l = d => `<path d="${d}" stroke="currentColor" stroke-width="1.2" fill="none" opacity=".6"/>`;
+  const g = {
+    right: r(3, 16, 16, 8, 1) + l('M19 20C28 20 27 7 36 7M19 20H36M19 20C28 20 27 33 36 33') + r(36, 4, 24, 6) + r(36, 17, 24, 6) + r(36, 30, 24, 6),
+    left: r(45, 16, 16, 8, 1) + l('M45 20C36 20 37 7 28 7M45 20H28M45 20C36 20 37 33 28 33') + r(4, 4, 24, 6) + r(4, 17, 24, 6) + r(4, 30, 24, 6),
+    both: r(24, 16, 16, 8, 1) + l('M40 20C46 20 45 9 50 9M40 20C46 20 45 31 50 31M24 20C18 20 19 9 14 9M24 20C18 20 19 31 14 31') + r(50, 6, 12, 6) + r(50, 28, 12, 6) + r(2, 6, 12, 6) + r(2, 28, 12, 6),
+    down: r(24, 3, 16, 8, 1) + l('M32 11C32 20 10 18 10 27M32 11V27M32 11C32 20 54 18 54 27') + r(2, 27, 16, 7) + r(24, 27, 16, 7) + r(46, 27, 16, 7),
+    'outline-rtl': r(38, 3, 24, 7, 1) + l('M56 10V16.5H50M56 10V29.5H50') + r(22, 13, 28, 7) + r(22, 26, 28, 7),
+    'outline-ltr': r(2, 3, 24, 7, 1) + l('M8 10V16.5H14M8 10V29.5H14') + r(14, 13, 28, 7) + r(14, 26, 28, 7)
+  };
+  return `<svg viewBox="0 0 64 40">${g[k]}</svg>`;
+}
+
+function settingsHTML() {
+  const st = ST();
+  const seg = (key, opts) => `<div class="seg">${opts.map(([v, lb]) => `<button data-set="${key}" data-val="${v}" class="${String(st[key]) === String(v) ? 'active' : ''}">${lb}</button>`).join('')}</div>`;
+  const range = (key, label, min, max, step, unit = 'px') => `<div class="field"><label>${label}<output data-out="${key}">${st[key]}${unit}</output></label>
+    <input type="range" data-range="${key}" min="${min}" max="${max}" step="${step}" value="${st[key]}"></div>`;
+  return `
+  <div class="sec"><div class="sec-title">استایل چیدمان نودها</div>
+    <div class="layout-grid">${LAYOUTS.map(([k, lb]) => `<button class="layout-card ${st.layout === k ? 'active' : ''}" data-set="layout" data-val="${k}">${layoutSvg(k)}${lb}</button>`).join('')}</div>
+  </div>
+  <div class="sec"><div class="sec-title">فونت و متن</div>
+    <div class="field"><label>فونت نقشه</label>
+      <select class="select" data-select="font">${FONTS.map(([f, lb]) => `<option value="${esc(f)}" ${st.font === f ? 'selected' : ''} style="font-family:${esc(fontStack(f))}">${lb}</option>`).join('')}</select>
+      <div class="node-preview" style="font-family:${esc(fontStack(st.font))};font-size:16px;margin:8px 0 0" dir="auto">نقشه ذهنی زیبا و خوانا — Beautiful mind map ۱۲۳</div>
+    </div>
+    ${range('fontSize', 'اندازه فونت', 11, 28, 1)}
+    <div class="field"><label>چینش پیش‌فرض متن</label>${seg('align', [['auto', 'خودکار'], ['right', 'راست'], ['center', 'وسط'], ['left', 'چپ']])}</div>
+  </div>
+  <div class="sec"><div class="sec-title">اندازه و فاصله نودها</div>
+    <div class="field"><label>حداکثر عرض نود<output data-out="maxWidth">${st.maxWidth}px</output></label>
+      <div style="display:flex;gap:8px;align-items:center"><input type="range" data-range="maxWidth" min="160" max="900" step="10" value="${st.maxWidth}">
+      <input type="number" class="input" data-range="maxWidth" min="100" max="2000" step="10" value="${st.maxWidth}" style="width:92px;direction:ltr;text-align:center"></div></div>
+    ${range('minWidth', 'حداقل عرض نود', 60, 400, 10)}
+    ${range('hGap', 'فاصله بین سطوح (والد تا فرزند)', 20, 220, 2)}
+    ${range('vGap', 'فاصله بین نودهای هم‌سطح', 4, 90, 1)}
+  </div>
+  <div class="sec"><div class="sec-title">شکل نود</div>
+    ${seg('shape', [['rounded', 'گرد'], ['pill', 'کپسولی'], ['square', 'گوشه‌تیز'], ['underline', 'خط زیر']])}
+  </div>
+  <div class="sec"><div class="sec-title">یال‌ها</div>
+    <div class="field">${seg('edgeStyle', [['curve', 'منحنی'], ['elbow', 'زاویه‌دار'], ['straight', 'مستقیم']])}</div>
+    ${range('edgeWidth', 'ضخامت یال', .5, 8, .5)}
+    <label class="switch">ضخامت کاهشی با عمق<input type="checkbox" data-switch="taper" ${st.taper ? 'checked' : ''}></label>
+  </div>
+  <div class="sec"><div class="sec-title">رنگ‌بندی</div>
+    <div class="field">${seg('colorMode', [['branch', 'هر شاخه یک رنگ'], ['gradient', 'طیف تک‌رنگ'], ['soft', 'ملایم']])}</div>
+    <div class="field"><label>پالت شاخه‌ها</label>
+      <div class="layout-grid">${Object.keys(PALETTES).map(k => `<button class="layout-card ${st.palette === k ? 'active' : ''}" data-set="palette" data-val="${k}">
+        <span class="shade-row" style="width:100%;height:14px;margin:0">${PALETTES[k].slice(0, 6).map(c => `<span style="background:${c}"></span>`).join('')}</span>${PALETTE_NAMES[k]}</button>`).join('')}</div></div>
+    <div class="field"><label>رنگ ریشه</label>
+      <div class="swatches">${swatchBtns(st.rootColor, 'rootc')}<label class="sw pick" title="رنگ دلخواه"><input type="color" id="rootPick" value="${st.rootColor}"></label></div></div>
+  </div>
+  <div class="sec"><div class="sec-title">سایر</div>
+    <label class="switch">انیمیشن جابجایی نودها<input type="checkbox" data-switch="animate" ${st.animate ? 'checked' : ''}></label>
+    <div class="row"><button class="btn btn-primary btn-sm" data-sa="arrange">${icon('wand')}مرتب‌سازی نقشه</button>
+      <button class="btn btn-ghost btn-sm" data-sa="reset">${icon('reset')}تنظیمات پیش‌فرض</button></div>
+  </div>`;
+}
+
+function bindSettings(body) {
+  $$('[data-set]', body).forEach(b => b.onclick = () => {
+    const k = b.dataset.set; let v = b.dataset.val;
+    if (typeof DEFAULT_SETTINGS[k] === 'number') v = +v;
+    if (ST()[k] === v) return;
+    mutate(() => { ST()[k] = v; });
+    if (k === 'layout') setTimeout(() => fitView(), 320);
+  });
+  $$('[data-range]', body).forEach(inp => {
+    inp.oninput = () => {
+      const k = inp.dataset.range; let v = +inp.value;
+      if (!isFinite(v)) return;
+      if (inp.type === 'number') { if (v < 100) return; v = clamp(v, 100, 2000); }
+      liveSetting(k, v);
+      $$(`[data-out="${k}"]`, body).forEach(o => o.textContent = v + (k === 'edgeWidth' ? 'px' : 'px'));
+      $$(`[data-range="${k}"]`, body).forEach(o => { if (o !== inp) o.value = v; });
+    };
+    inp.onchange = endLive;
+  });
+  $$('[data-select]', body).forEach(sel => sel.onchange = () => {
+    const k = sel.dataset.select;
+    mutate(() => { ST()[k] = sel.value; });
+    if (k === 'font' && document.fonts) document.fonts.load(`16px "${sel.value}"`).then(() => render({ instant: true })).catch(() => { });
+  });
+  $$('[data-switch]', body).forEach(c => c.onchange = () => mutate(() => { ST()[c.dataset.switch] = c.checked; }));
+  $$('[data-rootc]', body).forEach(b => b.onclick = () => mutate(() => { ST().rootColor = b.dataset.rootc; }));
+  const rp = $('#rootPick', body); rp.oninput = () => liveSetting('rootColor', rp.value); rp.onchange = () => { endLive(); renderPanel(); };
+  $$('[data-sa]', body).forEach(b => b.onclick = async () => {
+    if (b.dataset.sa === 'arrange') return arrange();
+    if (await confirmBox('بازنشانی تنظیمات', 'همه تنظیمات این نقشه به حالت پیش‌فرض برگردد؟')) mutate(() => { P().settings = { ...DEFAULT_SETTINGS }; });
+  });
+}
+
+/* =====================================================================
+   Import / Export (JSON & Markdown) — layout, collapse state and
+   positions are preserved in both formats
+   ===================================================================== */
+const safeName = s => (String(s).trim().replace(/[\\/:*?"<>|]+/g, '-').slice(0, 80) || 'mindmap');
+function download(name, text, type) {
+  const blob = new Blob([text], { type: type + ';charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 800);
+}
+function exportJSON() {
+  saveNow();
+  download(safeName(P().name) + '.mindmap.json', JSON.stringify(serializeProject(P(), true), null, 2), 'application/json');
+  toast('فایل JSON دانلود شد');
+}
+function toMarkdown(p) {
+  const data = serializeProject(p, true);
+  const meta = { app: data.app, version: 1, name: p.name, created: p.created, settings: p.settings, view: p.view };
+  const nodeMeta = n => {
+    const m = { id: n.id };
+    if (n.collapsed) m.collapsed = true;
+    if (n.color) m.color = n.color;
+    if (n.edgeColor) m.edgeColor = n.edgeColor;
+    if (n.align) m.align = n.align;
+    if (n.off) m.off = n.off;
+    if (n.pos) m.pos = n.pos;
+    return ` <!-- node:${JSON.stringify(m)} -->`;
+  };
+  const txt = t => String(t).replace(/<!--/g, '&lt;!--').replace(/\r?\n/g, '<br>');
+  const lines = [`<!-- mindmap:${JSON.stringify(meta)} -->`, '', `# ${txt(data.root.text)}${nodeMeta(data.root)}`, ''];
+  const rec = (n, d) => n.children.forEach(c => { lines.push(`${'  '.repeat(d)}- ${txt(c.text)}${nodeMeta(c)}`); rec(c, d + 1); });
+  rec(data.root, 0);
+  return lines.join('\n') + '\n';
+}
+function exportMarkdown() {
+  saveNow();
+  download(safeName(P().name) + '.mindmap.md', toMarkdown(P()), 'text/markdown');
+  toast('فایل Markdown دانلود شد');
+}
+function exportBackup() {
+  saveNow();
+  const projects = S.index.map(e => lsGet(LSK.proj(e.id), null)).filter(Boolean);
+  download('mindmap-backup-' + new Date().toISOString().slice(0, 10) + '.json', JSON.stringify({ app: 'zehn-negar-mindmap', backup: true, version: 1, projects }, null, 2), 'application/json');
+  toast('پشتیبان همه پروژه‌ها دانلود شد');
+}
+
+function fromMarkdown(md, fallbackName) {
+  let meta = {};
+  const mm = md.match(/<!--\s*mindmap:(\{[\s\S]*?\})\s*-->/);
+  if (mm) { try { meta = JSON.parse(mm[1]); } catch (e) { } }
+  const tops = [], stack = [];
+  let headingBase = null, headingLevel = -1;
+  const makeItem = raw => {
+    let m = {}, s = raw;
+    const nm = s.match(/<!--\s*node:(\{.*\})\s*-->\s*$/);
+    if (nm) { try { m = JSON.parse(nm[1]); } catch (e) { } s = s.slice(0, nm.index); }
+    s = s.replace(/^\[[ xX]\]\s+/, '').trim().replace(/<br\s*\/?>/gi, '\n').replace(/&lt;!--/g, '<!--');
+    return Object.assign({}, m, { text: s, children: [] });
+  };
+  for (const raw of md.replace(/\r/g, '').split('\n')) {
+    if (/^\s*<!--\s*mindmap:/.test(raw) || !raw.trim()) continue;
+    let level, content;
+    const h = raw.match(/^(#{1,6})\s+(.*)$/);
+    if (h) {
+      if (headingBase == null) headingBase = h[1].length;
+      level = Math.max(0, h[1].length - headingBase) * 1000; headingLevel = level; content = h[2];
+    } else {
+      const li = raw.match(/^(\s*)(?:[-*+]|\d+[.)])\s+(.*)$/);
+      if (!li) continue;
+      const ind = li[1].replace(/\t/g, '  ').length;
+      level = headingLevel + 1 + Math.floor(ind / 2); content = li[2];
+    }
+    const item = makeItem(content);
+    while (stack.length && stack[stack.length - 1].level >= level) stack.pop();
+    if (stack.length) stack[stack.length - 1].node.children.push(item); else tops.push(item);
+    stack.push({ level, node: item });
+  }
+  if (!tops.length) throw new Error('empty');
+  const root = tops.length === 1 ? tops[0] : { text: meta.name || fallbackName, children: tops };
+  return projectFromData({ name: meta.name || fallbackName || root.text, settings: meta.settings, view: meta.view, root });
+}
+
+function addImportedProject(p) {
+  const clash = S.index.some(e => e.id === p.id);
+  if (clash) p.id = uid();
+  lsSet(LSK.proj(p.id), JSON.stringify(serializeProject(p)));
+  S.index.unshift({ id: p.id, name: p.name, updated: Date.now(), count: countNodes(p.root), color: p.root.color || p.settings.rootColor });
+  lsSet(LSK.index, S.index);
+  return p;
+}
+function importFile(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const text = String(reader.result).replace(/^﻿/, '');
+    const base = file.name.replace(/\.(mindmap\.)?(json|md|markdown|txt)$/i, '');
+    try {
+      let last;
+      if (/\.json$/i.test(file.name) || /^\s*[\[{]/.test(text)) {
+        const d = JSON.parse(text);
+        if (d && d.backup && Array.isArray(d.projects)) {
+          d.projects.forEach(pd => { last = addImportedProject(projectFromData(pd, true)); });
+          if (!last) throw new Error('empty');
+          toast(faNum(d.projects.length) + ' پروژه وارد شد');
+        } else {
+          const pd = d.root ? d : { name: base, root: Array.isArray(d) ? { text: base, children: d } : d };
+          last = addImportedProject(projectFromData(pd, true));
+          toast('پروژه «' + last.name + '» وارد شد');
+        }
+      } else {
+        last = addImportedProject(fromMarkdown(text, base));
+        toast('پروژه «' + last.name + '» وارد شد');
+      }
+      loadProject(last.id);
+    } catch (err) {
+      console.error(err);
+      toast('فایل قابل خواندن نیست یا فرمت آن نامعتبر است');
+    }
+  };
+  reader.readAsText(file, 'utf-8');
+}
+$('#fileInput').addEventListener('change', e => { const f = e.target.files[0]; if (f) importFile(f); e.target.value = ''; });
+viewport.addEventListener('dragover', e => { if (e.dataTransfer?.types?.includes('Files')) e.preventDefault(); });
+viewport.addEventListener('drop', e => { const f = e.dataTransfer?.files?.[0]; if (f) { e.preventDefault(); importFile(f); } });
+
+/* =====================================================================
+   App chrome: actions, theme, help, init
+   ===================================================================== */
+function applyTheme() {
+  document.documentElement.dataset.theme = S.theme;
+  const b = $('#btnTheme'); b.innerHTML = icon(S.theme === 'dark' ? 'sun' : 'moon');
+}
+function toggleTheme() {
+  S.theme = S.theme === 'dark' ? 'light' : 'dark';
+  applyTheme(); savePrefs(); render({ instant: true }); renderPanel();
+}
+function showHelp() {
+  const rows = [['افزودن زیرنود', 'Tab'], ['افزودن نود هم‌سطح', 'Enter'], ['ویرایش متن', 'F2 / Double-click'], ['خط جدید هنگام ویرایش', 'Shift+Enter'],
+    ['حذف نود', 'Delete'], ['باز / بسته کردن زیرنودها', 'Space'], ['حرکت بین نودها', '← ↑ → ↓'], ['واگرد / ازنو', 'Ctrl+Z / Ctrl+Y'],
+    ['مرتب‌سازی نقشه', 'Ctrl+L'], ['تکثیر شاخه', 'Ctrl+D'], ['ذخیره', 'Ctrl+S'], ['نمایش کامل', 'F'], ['بزرگ‌نمایی', 'Wheel / + −'],
+    ['جابجایی آزاد (بدون جاگذاری)', 'Shift + Drag'], ['جابجایی صفحه', 'Drag روی فضای خالی']];
+  openModal(`<h3>میانبرها و راهنما</h3>
+    <p>نود را بکشید: روی لبه بالا/پایین نود دیگر رها کنید تا <b>بین نودها</b> قرار بگیرد، روی وسط آن رها کنید تا <b>زیرنود</b> شود، یا در فضای خالی رها کنید تا آزادانه جابجا شود.</p>
+    <table class="kb-table">${rows.map(([a, b]) => `<tr><td>${a}</td><td><kbd>${b}</kbd></td></tr>`).join('')}</table>
+    <div class="row"><button class="btn btn-primary" data-r="1">متوجه شدم</button></div>`);
+  $('#modalCard [data-r]').onclick = () => closeModal();
+}
+async function newProject() {
+  const name = await promptBox('پروژه جدید', '', 'نام پروژه را وارد کنید');
+  if (!name) return;
+  const p = createProject(name, { text: name });
+  loadProject(p.id);
+  toast('پروژه «' + name + '» ساخته شد');
+}
+
+const ACTIONS = {
+  undo, redo,
+  addChild: () => addChild(), addSibling: () => addSibling(), delete: () => deleteNode(),
+  collapseAll, expandLevel: () => expandLevel(), expandAll: () => expandAll(),
+  arrange, fit: () => fitView(), center: () => centerRoot(),
+  import: () => $('#fileInput').click(),
+  save: () => { saveNow(); toast('پروژه ذخیره شد'); },
+  theme: toggleTheme, help: showHelp, newProject,
+  zoomIn: () => zoomAt(innerWidth / 2, innerHeight / 2, 1.25, true),
+  zoomOut: () => zoomAt(innerWidth / 2, innerHeight / 2, 1 / 1.25, true),
+  zoomReset: () => { const v = ensureView(), c = viewCenter(); zoomAt(c.x, c.y, 1 / v.scale, true); }
+};
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]');
+  if (b && ACTIONS[b.dataset.act]) { if (S.editing) finishEdit(true); ACTIONS[b.dataset.act](); }
+  const c = e.target.closest('[data-close]');
+  if (c) closeDrawer(c.dataset.close);
+});
+$('#modal').addEventListener('pointerdown', e => { if (e.target.id === 'modal') closeModal(null); });
+$('#btnProjects').onclick = () => {
+  const d = $('#projectsPanel'), open = !d.classList.contains('open');
+  d.classList.toggle('open', open); $('#btnProjects').classList.toggle('active', open);
+  if (open) renderProjects();
+};
+$('#btnPanel').onclick = () => $('#sidePanel').classList.contains('open') ? closeDrawer('sidePanel') : openSidePanel();
+$('#btnExport').onclick = e => {
+  const m = $('#exportMenu');
+  if (m.classList.contains('open')) return closeMenus();
+  const r = e.currentTarget.getBoundingClientRect();
+  openMenu(m, [
+    { header: 'خروجی پروژه فعلی' },
+    { icon: 'md', label: 'Markdown (.md)', act: exportMarkdown },
+    { icon: 'json', label: 'JSON (.json)', act: exportJSON },
+    '-',
+    { icon: 'save', label: 'پشتیبان همه پروژه‌ها', act: exportBackup },
+    { icon: 'upload', label: 'ورود فایل JSON / Markdown', act: () => $('#fileInput').click() }
+  ], r.right, r.bottom + 8);
+};
+const nameInput = $('#projName');
+nameInput.addEventListener('input', () => { if (!P()) return; P().name = nameInput.value || 'بدون نام'; scheduleSave(); });
+nameInput.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === 'Escape') nameInput.blur(); });
+nameInput.addEventListener('blur', () => { if (!nameInput.value.trim()) nameInput.value = P().name; });
+window.addEventListener('resize', () => { if (S.needFit && P()) fitView(false); });
+window.addEventListener('beforeunload', () => { if (S.editing) finishEdit(true); saveNow(); });
+
+function init() {
+  hydrateIcons();
+  const prefs = lsGet(LSK.prefs, {});
+  S.theme = prefs.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  applyTheme();
+  S.index = lsGet(LSK.index, []).filter(e => e && e.id && lsGet(LSK.proj(e.id), null));
+  if (!S.index.length) createProject('نقشه نمونه', sampleRoot());
+  const id = (S.index.find(e => e.id === prefs.current) || S.index[0]).id;
+  loadProject(id);
+  if (document.fonts) {
+    let t = 0;
+    const remeasure = () => { clearTimeout(t); t = setTimeout(() => { if (!S.drag && !S.editing) render({ instant: true }); }, 60); };
+    document.fonts.ready.then(remeasure);
+    document.fonts.addEventListener?.('loadingdone', remeasure);
+  }
+}
+init();
+</script>
+</body>
+</html>
